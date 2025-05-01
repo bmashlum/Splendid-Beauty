@@ -131,15 +131,19 @@ export default function Home() {
             <section
               key={section.id}
               id={section.id}
-              className={`relative ${section.id === 'top' ? 'w-full -mt-4' : 'w-[95%] mx-auto'} h-screen overflow-hidden my-4`}
+              className={`relative ${section.id === 'top'
+                  ? 'w-full -mt-4'
+                  : 'w-[95%] mx-auto'
+                } h-screen overflow-hidden my-4 sm:my-6`}
             >
               {/* Wrapper div for positioning placeholder and image */}
               <div
-                className={`relative w-full h-full ${section.id === 'top' ? '' : 'rounded-lg'} bg-white overflow-hidden ${getAnimationClass()}`}
+                className={`relative w-full h-full ${section.id === 'top'
+                    ? ''
+                    : 'rounded-lg'
+                  } bg-white overflow-hidden ${getAnimationClass()}`}
               >
-
                 {/* --- Animated Shimmer Placeholder --- */}
-                {/* Always rendered initially, fades out when loaded. Uses class from global CSS */}
                 <div
                   className={`
                     absolute inset-0 z-0
@@ -152,21 +156,24 @@ export default function Home() {
                 {/* ------------------------------------ */}
 
                 {/* Next.js Image Component */}
-                <Image
-                  src={section.src}
-                  alt={section.alt}
-                  fill
-                  priority={isPriority} // Only first image is priority
-                  className={`
-                    relative object-cover z-10
-                    transition-opacity duration-700 ease-in-out
-                    ${isLoaded ? 'opacity-100' : 'opacity-0'}
-                  `}
-                  onLoadingComplete={() => handleLoadingComplete(section.id)}
-                  sizes="100vw"
-                  quality={75} // Adjust quality if needed (lower for faster loads)
-                  unoptimized={section.src.endsWith('.svg')}
-                />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={section.src}
+                    alt={section.alt}
+                    fill
+                    priority={isPriority}
+                    className={`
+                      relative z-10
+                      transition-opacity duration-700 ease-in-out
+                      ${isLoaded ? 'opacity-100' : 'opacity-0'}
+                      ${section.id === 'top' ? 'object-cover' : 'object-contain sm:object-cover'}
+                    `}
+                    onLoadingComplete={() => handleLoadingComplete(section.id)}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 95vw, 90vw"
+                    quality={75}
+                    unoptimized={section.src.endsWith('.svg')}
+                  />
+                </div>
 
                 {/* ---------- Content Overlays (ensure higher z-index) ---------- */}
                 {section.id === 'connect' && (
