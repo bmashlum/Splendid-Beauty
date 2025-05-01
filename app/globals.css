@@ -1,0 +1,137 @@
+/* src/app/globals.css */
+
+/* Import Tailwind's base, components, and utilities styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define CSS variables within the base layer */
+@layer base {
+  :root {
+    /* Theme variables (user-provided) */
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --primary: 35 33% 59%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 60 4.8% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 35 33% 59%;
+    --radius: 0.5rem;
+  }
+
+  /* You can also define dark mode variables here if needed */
+  /* .dark { ... } */
+}
+
+/* Apply base styles */
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100vh;
+    /* Ensure body takes full height but doesn't scroll itself */
+    height: 100vh;
+    /* Or just 100% if html is 100% */
+    overflow: hidden;
+    /* Prevent body scroll, scrolling handled by <main> */
+  }
+
+  html {
+    scroll-behavior: smooth;
+    height: 100%;
+    /* Consider overflow: hidden on html too if body overflow isn't enough */
+    overflow: hidden;
+  }
+}
+
+/* --- Shimmer Animation --- */
+/* Defined outside layers or within @layer utilities */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+    /* Start further left */
+  }
+
+  100% {
+    background-position: 1000px 0;
+    /* End further right */
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  /* Adjust duration (2s) if needed */
+  /* Using slightly more contrast colors for the gradient */
+  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background-size: 1500px 100%;
+  /* Wider background size */
+}
+
+/* --- Scroll Animations --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s ease-out forwards;
+}
+
+/* ------------------------ */
+
+/* Add any other global styles or component overrides below */
