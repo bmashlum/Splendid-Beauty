@@ -1,73 +1,40 @@
-'use client'
-
-import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { getBlogPostBySlug } from '../data/posts'
+import type { Metadata } from 'next'
 import Navbar from '@/components/navbar'
-import Head from 'next/head'
+import BlogPostClientLayout from './client-layout'
+
+export const metadata: Metadata = {
+  title: 'Blog Post | Splendid Beauty',
+  description: 'Detailed article from Splendid Beauty Blog.',
+  openGraph: {
+    title: 'Blog Post | Splendid Beauty',
+    description: 'Detailed article from Splendid Beauty Blog.',
+    url: 'https://splendidbeautybar.com/blog',
+    siteName: 'Splendid Beauty Bar & Co.',
+    images: [
+      {
+        url: '/images/og-blog.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Splendid Beauty Blog',
+      },
+    ],
+    locale: 'en_US',
+    type: 'article',
+  },
+}
 
 export default function BlogPostLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const params = useParams()
-  const [title, setTitle] = useState('Blog Post | Splendid Beauty Bar')
-  const [description, setDescription] = useState('Read our latest beauty blog post')
-
-  useEffect(() => {
-    if (params.slug) {
-      const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug
-      const post = getBlogPostBySlug(slug)
-      
-      if (post) {
-        setTitle(`${post.title} | Splendid Beauty Blog`)
-        setDescription(post.excerpt)
-        
-        // Update meta tags
-        document.title = title
-        
-        // Find or create meta description
-        let metaDescription = document.querySelector('meta[name="description"]')
-        if (!metaDescription) {
-          metaDescription = document.createElement('meta')
-          metaDescription.setAttribute('name', 'description')
-          document.head.appendChild(metaDescription)
-        }
-        metaDescription.setAttribute('content', description)
-        
-        // Update Open Graph tags if needed
-        let ogTitle = document.querySelector('meta[property="og:title"]')
-        if (!ogTitle) {
-          ogTitle = document.createElement('meta')
-          ogTitle.setAttribute('property', 'og:title')
-          document.head.appendChild(ogTitle)
-        }
-        ogTitle.setAttribute('content', title)
-        
-        let ogDescription = document.querySelector('meta[property="og:description"]')
-        if (!ogDescription) {
-          ogDescription = document.createElement('meta')
-          ogDescription.setAttribute('property', 'og:description')
-          document.head.appendChild(ogDescription)
-        }
-        ogDescription.setAttribute('content', description)
-        
-        let ogUrl = document.querySelector('meta[property="og:url"]')
-        if (!ogUrl) {
-          ogUrl = document.createElement('meta')
-          ogUrl.setAttribute('property', 'og:url')
-          document.head.appendChild(ogUrl)
-        }
-        ogUrl.setAttribute('content', `https://splendidbeautybar.com/blog/${slug}`)
-      }
-    }
-  }, [params.slug, title, description])
-
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-fixed bg-center relative">
+      <div className="absolute inset-0 backdrop-blur-[1px] bg-black/5"></div>
       <Navbar scrolled={true} />
-      {children}
-    </>
+      <main className="flex-grow overflow-y-auto overflow-x-hidden blog-post-container relative z-10">
+        <BlogPostClientLayout>{children}</BlogPostClientLayout>
+      </main>
+    </div>
   )
 }

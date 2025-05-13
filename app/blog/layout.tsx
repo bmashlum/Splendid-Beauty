@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import Navbar from '@/components/navbar'
+import ClientLayout from './client-layout'
+import './blog-typography.css'
 
 export const metadata: Metadata = {
   title: 'Splendid Beauty Blog | Beauty Tips & Trends',
@@ -29,9 +30,11 @@ export default function BlogLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
-      <Navbar scrolled={true} />
-      {children}
-    </>
+    <div className="flex flex-col min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-fixed bg-center relative">
+      <div className="absolute inset-0 backdrop-blur-[1px] bg-black/5"></div>
+      <main className="flex-grow overflow-y-auto overflow-x-hidden scroll-smooth relative z-10">
+        <ClientLayout>{children}</ClientLayout>
+      </main>
+    </div>
   )
 }

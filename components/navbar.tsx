@@ -1,124 +1,238 @@
-"use client"
+// components/navbar.tsx
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../components/ui/dialog";
+import { cn } from "@/lib/utils";
 
-// Function to get section links based on current path
-const getNavLinks = (isHomePage: boolean) => {
-  const baseLinks = [
-    { name: "Home", href: isHomePage ? "#top" : "/" },
-    { name: "About Us", href: isHomePage ? "#about" : "/#about" },
-    { name: "Book Now", href: isHomePage ? "#book-now" : "/#book-now" },
-    { name: "Portfolio", href: isHomePage ? "#portfolio" : "/#portfolio" },
-    { name: "Shop", href: isHomePage ? "#shop" : "/#shop" },
-    { name: "Hair Studio", href: isHomePage ? "#hair-studio" : "/#hair-studio" },
-    { name: "Academy", href: isHomePage ? "#academy" : "/#academy" },
-    { name: "Policies", href: isHomePage ? "#policies" : "/#policies" },
-    { name: "Connect", href: isHomePage ? "#connect" : "/#connect" },
-    { name: "Blog", href: isHomePage ? "#blog" : "/blog" },
-    { name: "Financing", href: isHomePage ? "#financing" : "/#financing" },
-  ];
-
-  return baseLinks;
-}
-
-// Define props interface for the component
 interface NavbarProps {
-  scrolled: boolean; // Expect 'scrolled' state from parent
+  scrolled?: boolean;
 }
 
-export default function Navbar({ scrolled }: NavbarProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
-  const isHomePage = pathname === "/"
-  const navLinks = getNavLinks(isHomePage)
+type NavLinkItem = {
+  name: string;
+  href: string;
+  isExternal?: boolean;
+  isBooking?: boolean;
+};
+
+const useNavLinks = (): NavLinkItem[] => {
+  const pathname = usePathname();
+  const isScrollablePage = pathname === "/" || pathname.startsWith("/#");
+
+  return useMemo(() => [
+    { name: "Home", href: "/" },
+    { name: "About Us", href: isScrollablePage ? "#about" : "/#about" },
+    { name: "We Do That", href: isScrollablePage ? "#we-do-that" : "/#we-do-that" },
+    { name: "Book Now", href: "#", isBooking: true },
+    { name: "Shop", href: isScrollablePage ? "#shop" : "/#shop" },
+    { name: "Hair Studio", href: isScrollablePage ? "#hair-studio" : "/#hair-studio" },
+    { name: "Academy", href: isScrollablePage ? "#academy" : "/#academy" },
+    { name: "Policies", href: isScrollablePage ? "#policies" : "/#policies" },
+    { name: "Connect", href: isScrollablePage ? "#connect" : "/#connect" },
+    { name: "Blog", href: "/blog" },
+    { name: "Financing", href: isScrollablePage ? "#financing" : "/#financing" },
+  ], [isScrollablePage]);
+};
+
+export default function Navbar({ scrolled: initialScrolled = false }: NavbarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(initialScrolled);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const navLinks = useNavLinks();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof initialScrolled === 'boolean' && initialScrolled !== isScrolled) {
+      setIsScrolled(initialScrolled);
+    }
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (typeof initialScrolled !== 'boolean' || !initialScrolled) {
+        setIsScrolled(currentScrollY > 10);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [initialScrolled, isScrolled]);
+
+
+  const handleNavLinkClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string, isBooking?: boolean) => {
+    if (isBooking) {
+      e.preventDefault();
+      setIsBookingOpen(true);
+      setIsMobileMenuOpen(false);
+      return;
+    }
+
+    setIsMobileMenuOpen(false);
+
+    if (href.startsWith("#") && pathname === "/") {
+      e.preventDefault();
+      const targetId = href.substring(1);
+      const targetElement = document.getElementById(targetId);
+      const mainContent = document.getElementById('main-content');
+
+      if (targetElement && mainContent) {
+        const offsetTop = targetElement.offsetTop;
+        mainContent.scrollTo({
+          top: offsetTop,
+          behavior: 'smooth'
+        });
+      } else if (targetId === 'hero' && mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else if (href === "/" && pathname === "/") {
+      e.preventDefault();
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }, [pathname]);
 
   return (
-    <header
-      // Use the 'scrolled' prop to conditionally apply classes
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? "bg-[#eee5e0]/95 shadow-md backdrop-blur-sm" // Apply background, shadow, slight transparency, and blur when scrolled
-          : "bg-transparent" // Transparent when not scrolled
-        }`}
-    >
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="#top" className="flex items-center flex-shrink-0">
-          {/* Added flex-shrink-0 to prevent shrinking on smaller screens */}
-          <Image
-            src="/images/splendid-logo.png" // Ensure this path is correct
-            alt="Splendid Beauty Bar & Co."
-            width={180} // Adjust width as needed
-            height={48} // Adjusted height slightly for aspect ratio, fine-tune
-            priority // Make logo priority as it's always visible
-            // Opacity transition for logo (optional aesthetic)
-            className={`${scrolled ? "opacity-100" : "opacity-90 hover:opacity-100"} transition-opacity duration-300`}
-            style={{ height: 'auto' }} // Maintain aspect ratio
-          />
-        </Link>
+    <>
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ease-in-out",
+          "bg-white/30 backdrop-blur-sm shadow-lg border border-white/20"
+        )}
+        role="banner"
+      >
+        <div className={cn(
+          "container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between",
+          "h-12 sm:h-14"
+        )}>
+          <Link
+            href="/"
+            className="flex items-center flex-shrink-0"
+            aria-label="Splendid Beauty Bar & Co. Homepage"
+            onClick={(e) => handleNavLinkClick(e, "/")}
+          >
+            <Image
+              src="/images/splendid-logo.png"
+              alt="Splendid Beauty Bar & Co. Logo"
+              width={180}
+              height={48}
+              priority
+              className={cn(
+                "transition-all duration-300 ease-in-out",
+                "opacity-100 w-[150px] sm:w-[180px]"
+              )}
+              style={{ height: 'auto' }}
+            />
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center">
-          {/* Increased gap slightly for better spacing */}
-          <div className="flex flex-wrap justify-end gap-x-6 gap-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                // Use 'scrolled' prop for text color
-                className={`font-medium text-sm transition-colors duration-300 hover:text-[#C09E6C] ${scrolled ? "text-stone-800" : "text-white hover:text-gray-200" // Darker text when scrolled, white when not
-                  }`}
-                scroll={isHomePage || link.href.startsWith("/")}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
-        </nav>
-
-        {/* Mobile Navigation Trigger */}
-        <div className="lg:hidden"> {/* Wrapper div for positioning */}
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu">
-                {/* Use 'scrolled' prop for menu icon color */}
-                <Menu className={`h-6 w-6 transition-colors duration-300 ${scrolled ? "text-stone-800" : "text-white"}`} />
-              </Button>
-            </SheetTrigger>
-            {/* Mobile Menu Content */}
-            <SheetContent side="right" className="w-[85vw] sm:w-[300px] bg-white/95 backdrop-blur-sm pt-10 px-4">
-              <div className="flex justify-center mb-8">
-                <Link href="#top" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Image
-                    src="/images/splendid-logo.png"
-                    alt="Splendid Beauty Bar & Co. Logo"
-                    width={160}
-                    height={43}
-                    style={{ height: 'auto' }}
-                  />
-                </Link>
-              </div>
-              <nav className="flex flex-col space-y-4">
-                {navLinks.map((link) => (
+          <nav className="hidden lg:flex items-center" aria-label="Main navigation">
+            <ul className="flex flex-wrap justify-end gap-x-5 xl:gap-x-6 gap-y-1">
+              {navLinks.map((link) => (
+                <li key={link.name}>
                   <Link
-                    key={link.name}
                     href={link.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg font-medium text-gray-800 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-gray-50"
+                    target={link.isExternal ? "_blank" : "_self"}
+                    rel={link.isExternal ? "noopener noreferrer" : ""}
+                    className={cn(
+                      "font-forum text-sm xl:text-base transition-colors duration-200 hover:text-[#C09E6C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C09E6C] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm",
+                      "text-stone-800",
+                      link.isBooking && "bg-[#C09E6C] text-white px-4 py-2 rounded-full hover:bg-[#a88a5d] hover:text-white shadow-md hover:shadow-lg transition-all duration-200"
+                    )}
+                    onClick={(e) => handleNavLinkClick(e, link.href, link.isBooking)}
+                    scroll={!link.href.startsWith("#") && !link.isExternal}
                   >
                     {link.name}
                   </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="lg:hidden">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open main menu">
+                  <Menu className="h-6 w-6 text-stone-800" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[85vw] max-w-xs sm:max-w-sm bg-white/95 backdrop-blur-md p-0 flex flex-col shadow-xl">
+                <SheetHeader className="p-4 border-b flex flex-row justify-between items-center">
+                  <SheetTitle className="text-lg font-semibold text-stone-800">Menu</SheetTitle>
+                  <SheetClose asChild>
+                    <Button variant="ghost" size="icon" aria-label="Close menu">
+                      <X className="h-5 w-5 text-stone-600" />
+                    </Button>
+                  </SheetClose>
+                </SheetHeader>
+                <nav className="flex-grow overflow-y-auto p-4" aria-label="Mobile navigation">
+                  <ul className="space-y-1">
+                    {navLinks.map((link) => (
+                      <li key={link.name}>
+                        <Link
+                          href={link.href}
+                          target={link.isExternal ? "_blank" : "_self"}
+                          rel={link.isExternal ? "noopener noreferrer" : ""}
+                          onClick={(e) => handleNavLinkClick(e, link.href, link.isBooking)}
+                          className={cn(
+                            "block text-lg font-forum transition-colors py-3 px-3 rounded-md hover:bg-gray-100 focus-visible:outline-none focus-visible:bg-gray-100",
+                            link.isBooking
+                              ? "bg-[#C09E6C] text-white hover:bg-[#a88a5d] hover:text-white shadow-md hover:shadow-lg transition-all duration-200 text-center my-4"
+                              : "text-gray-800 hover:text-[#C09E6C]"
+                          )}
+                          scroll={!link.href.startsWith("#") && !link.isExternal}
+                        >
+                          {link.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
-      </div>
-    </header>
-  )
+      </header>
+
+      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+        <DialogContent className="max-w-[90vw] w-[1200px] h-[90vh] p-0">
+          <DialogHeader className="p-4 border-b">
+            <DialogTitle className="text-lg font-semibold text-stone-800">Book Your Appointment</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 w-full h-[calc(90vh-4rem)]">
+            <iframe
+              src="https://dashboard.boulevard.io/booking/businesses/18e96cd8-7ca6-4e7e-8282-2055f45efbc4/widget"
+              className="w-full h-full border-0"
+              title="Booking Widget"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* Custom form styling for admin dashboard */
+  .admin-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-[#063f48] focus:ring-[#063f48] sm:text-sm;
+  }
+  
+  /* Fix z-index issues with modals */
+  .admin-modal {
+    @apply z-[9999];
+  }
+  
+  /* Fix toast notification positioning */
+  .admin-toast {
+    @apply z-[10000];
+  }
+}

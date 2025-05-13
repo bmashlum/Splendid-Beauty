@@ -1,53 +1,100 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import Navbar from "@/components/navbar"
-import { ThemeProvider } from "@/components/theme-provider"
+// app/layout.tsx
+import type { Metadata } from 'next'
+import { Inter, Forum } from 'next/font/google'
+import '@/app/globals.css'
 
-const inter = Inter({ subsets: ["latin"] })
+import { ThemeProvider } from '@/components/theme-provider'
 
+const inter = Inter({ subsets: ['latin'] })
+const forum = Forum({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-forum'
+})
+
+/* -------------------------------------------------------------------------- */
+/* ⤵︎  Global SEO / Social                                                  */
+/* -------------------------------------------------------------------------- */
 export const metadata: Metadata = {
-  title: "Splendid Beauty Bar & Co. | Facials • Brows • Peels",
-  description: "Atlanta's boutique beauty studio for corrective facials, brow artistry and clinical peels.",
+  metadataBase: new URL('https://splendidbeautybar.com'),
+  title:
+    'Splendid Beauty Bar & Co. | Facials • Brows • Peels | Atlanta, Georgia',
+  description:
+    "Atlanta's boutique beauty studio specializing in corrective facials, brow artistry and clinical peels.",
+  alternates: { canonical: '/' },
   openGraph: {
-    title: "Splendid Beauty Bar & Co. | Facials • Brows • Peels",
-    description: "Atlanta's boutique beauty studio for corrective facials, brow artistry and clinical peels.",
-    url: "/",
-    siteName: "Splendid Beauty Bar & Co.",
-    locale: "en_US",
-    type: "website",
+    title:
+      'Splendid Beauty Bar & Co. | Facials • Brows • Peels | Atlanta, Georgia',
+    description:
+      "Atlanta's boutique beauty studio specializing in corrective facials, brow artistry and clinical peels.",
+    url: '/',
+    siteName: 'Splendid Beauty Bar & Co.',
+    images: [
+      {
+        url: '/images/og-main.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Splendid Beauty Bar & Co. Studio',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
-  alternates: {
-    canonical: "/"
+  twitter: {
+    card: 'summary_large_image',
+    title:
+      'Splendid Beauty Bar & Co. | Facials • Brows • Peels | Atlanta, Georgia',
+    description:
+      "Atlanta's boutique beauty studio specializing in corrective facials, brow artistry and clinical peels.",
+    images: ['/images/og-main.jpg'],
   },
-  generator: 'v0.dev'
+  generator: 'Next.js',
 }
+
+/* -------------------------------------------------------------------------- */
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        {/* 🚀 Pre-load the only heavyweight raster so it starts downloading during HTML parse */}
+        <link
+          rel="preload"
+          as="image"
+          href="/images/elegant-gold-background.webp"
+          fetchPriority="high"
+        />
+
+        {/* Viewport for responsiveness */}
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
       </head>
-      <body className={inter.className}>
+
+      <body className={`${inter.className} ${forum.variable} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem
+          enableSystem={false}
           disableTransitionOnChange
           storageKey="splendid-beauty-theme"
         >
-          <Navbar scrolled={false} />
-          {children}
+          <main className="flex-grow">
+            {children}
+          </main>
         </ThemeProvider>
       </body>
     </html>

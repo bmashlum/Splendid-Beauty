@@ -9,7 +9,7 @@ const config = {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
     // If your page.tsx is directly in the root, you might need:
-    "./*.{js,ts,jsx,tsx,mdx}", 
+    "./*.{js,ts,jsx,tsx,mdx}",
   ],
   prefix: "", // Keep empty unless you have a specific need
   theme: {
@@ -21,6 +21,9 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        forum: ['var(--font-forum)'],
+      },
       colors: {
         // Map CSS variables to Tailwind color names
         border: "hsl(var(--border))",
@@ -84,7 +87,10 @@ const config = {
     },
   },
   // Ensure you have the necessary plugins installed (npm install -D tailwindcss-animate)
-  plugins: [require("tailwindcss-animate")], 
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography")
+  ],
 } satisfies Config
 
 export default config
