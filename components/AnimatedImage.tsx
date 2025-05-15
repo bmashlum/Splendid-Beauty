@@ -10,17 +10,18 @@ interface AnimatedImageProps {
     sizes?: string;
     objectPosition?: string;
     priority?: boolean;
-    isInView?: boolean; // Controlled by parent
+    isInView?: boolean;
 }
 
 export default function AnimatedImage({
     imagePath,
     videoPath,
     alt,
-    sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 95vw, 80vw",
+    // Default sizes: 100vw up to 1279px, then 80vw for larger screens
+    sizes = "(max-width: 1279px) 100vw, 80vw",
     objectPosition = 'object-center',
     priority = false,
-    isInView = false, // Default to false, parent will update this
+    isInView = false,
 }: AnimatedImageProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
@@ -31,10 +32,11 @@ export default function AnimatedImage({
     const [canVideoActuallyPlay, setCanVideoActuallyPlay] = useState(false);
     const [isVideoFading, setIsVideoFading] = useState(false);
 
-    // Check basic video support once
     useEffect(() => {
-        const video = document.createElement('video');
-        setIsVideoSupported(!!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4')));
+        if (typeof window !== 'undefined') {
+            const video = document.createElement('video');
+            setIsVideoSupported(!!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4')));
+        }
     }, []);
 
     const attemptPlayVideo = useCallback(async () => {
@@ -48,29 +50,34 @@ export default function AnimatedImage({
             } catch (error) {
                 console.warn('Video autoplay/play failed:', error);
                 setVideoError(true);
+                setCanVideoActuallyPlay(false);
             }
         }
     }, [videoError]);
 
     useEffect(() => {
-        if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded) {
+        if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded && isVideoSupported && !videoError) {
             attemptPlayVideo();
         } else if (!isInView && videoRef.current && !videoRef.current.paused) {
             videoRef.current.pause();
         }
-    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo]);
+    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError]);
 
-    // Show video layer when it's playing or fading out
-    const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && (isVideoFading || !hasVideoEnded);
+    const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded;
+    const isFadingVideo = isVideoSupported && !videoError && isVideoFading;
 
     return (
         <div className="relative w-full h-full overflow-hidden">
-            {/* Static Image (always hidden behind video) */}
+            {/* Static Image Layer */}
             <div className="absolute inset-0">
                 <Image
                     src={imagePath}
                     alt={alt}
-                    className={cn("object-cover", objectPosition)}
+                    // Use object-cover by default (mobile, tablet), switch to contain only on XL screens
+                    className={cn(
+                        "w-full h-full object-cover", // Always object-cover
+                        objectPosition
+                    )}
                     fill
                     priority={priority}
                     sizes={sizes}
@@ -82,45 +89,58 @@ export default function AnimatedImage({
                         `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f3f4f6"/></svg>`
                     ).toString('base64')}`}
                     style={{
-                        objectFit: 'cover',
-                        objectPosition: objectPosition.replace('object-', ''),
                         transform: 'translateZ(0)',
                         backfaceVisibility: 'hidden',
                     }}
                 />
             </div>
+
             {/* Video Layer */}
             {isVideoSupported && (
                 <motion.video
                     ref={videoRef}
-                    className={cn("absolute inset-0 h-full w-full object-cover", objectPosition)}
+                    // Use object-cover by default (mobile, tablet), switch to contain only on XL screens
+                    className={cn(
+                        "absolute inset-0 h-full w-full object-cover", // Always object-cover
+                        objectPosition
+                    )}
                     playsInline
                     muted
                     loop={false}
                     preload="auto"
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: showVideoLayer ? 1 : 0 }}
+                    animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
                     transition={{ duration: 0.5 }}
                     onLoadedData={() => {
                         setIsVideoTagReady(true);
-                        setCanVideoActuallyPlay(true);
+                        if (videoRef.current?.play) {
+                            setCanVideoActuallyPlay(true);
+                        } else {
+                            console.warn("Video element missing play function onLoadedData");
+                            setCanVideoActuallyPlay(false);
+                            setVideoError(true);
+                        }
+                    }}
+                    onCanPlay={() => {
+                        if (!canVideoActuallyPlay) {
+                            setCanVideoActuallyPlay(true);
+                        }
                     }}
                     onEnded={() => {
                         setHasVideoEnded(true);
-                        // Start fading out the video
                         setIsVideoFading(true);
-                        // After fade out completes, hide the video layer
                         setTimeout(() => {
-                            setCanVideoActuallyPlay(false);
                             setIsVideoFading(false);
-                        }, 500); // Match the transition duration
+                        }, 500);
                     }}
-                    onError={() => {
+                    onError={(e) => {
+                        console.error(`Video error: ${videoPath}`, e);
                         setVideoError(true);
                         setCanVideoActuallyPlay(false);
+                        setIsVideoFading(false);
                     }}
+                    src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
                 >
-                    <source src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')} type="video/mp4" />
                     Your browser does not support the video tag.
                 </motion.video>
             )}
