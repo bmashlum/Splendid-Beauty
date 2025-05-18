@@ -226,7 +226,7 @@ export default function Navbar({ scrolled: initialScrolled = false }: NavbarProp
           </DialogHeader>
           <div className="flex-1 w-full h-[calc(90vh-4rem)]">
             <iframe
-              src="https://dashboard.boulevard.io/booking/businesses/18e96cd8-7ca6-4e7e-8282-2055f45efbc4/widget"
+              src="https://dashboard.boulevard.io/booking/businesses/18e96cd8-7ca6-4e7e-8282-2055f45efbc4/widget#/visit-type"
               className="w-full h-full border-0"
               title="Booking Widget"
             />

@@ -205,12 +205,13 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   const isSectionInViewForPlayback = useInView(sectionRef, { amount: 0.1, once: false });
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isConnectFabExpanded, setIsConnectFabExpanded] = useState(false);
 
   // WARNING: These coordinates likely only work correctly on XL screens due to fixed height/width there.
   const [buttonPositions] = useState({
-    bookAppointment: { x: 647, y: 619 },
-    chatProfessional: { x: 1003, y: 621 },
-    giftCertificate: { x: 819, y: 764 }
+    bookAppointment: { x: 647, y: 640 },
+    chatProfessional: { x: 1003, y: 640 },
+    giftCertificate: { x: 819, y: 790 }
   });
 
   useEffect(() => {
@@ -237,7 +238,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
 
 
   if (content) {
-    return <section ref={sectionRef} id={id} className="w-full my-4 sm:my-6 md:my-8">{content}</section>;
+    return <section ref={sectionRef as React.RefObject<HTMLElement>} id={id} className="w-full my-4 sm:my-6 md:my-8">{content}</section>;
   }
   if (isSpacer) {
     return <div className={cn('w-full', heightClass || 'h-10 sm:h-16')} />;
@@ -263,9 +264,151 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
     ? '100vw'
     : '(max-width: 1279px) 100vw, 80vw';
 
+  // --- Connect Overlay ---
+  if (overlay === 'connect') {
+    return (
+      <motion.section
+        ref={sectionRef as React.RefObject<HTMLElement>}
+        id={id}
+        className={sectionClasses}
+        variants={sectionVariants}
+        initial="initial"
+        animate={isSectionInViewForAnimation ? "animate" : "initial"}
+      >
+        <div className="relative w-full h-full">
+          {sectionConfig ? (
+            <AnimatedImage
+              imagePath={`/images/${sectionConfig.imageName}${sectionConfig.imageName.endsWith('.webp') ? '' : '.png'}`}
+              videoPath={`/images/${sectionConfig.videoName}.mp4`}
+              alt={`${id} section background`}
+              sizes={imageSizes}
+              objectPosition={objectPosition}
+              priority={isHero || priorityImages.includes(id)}
+              isInView={isSectionInViewForPlayback}
+            />
+          ) : staticImageSrc ? (
+            <Image
+              src={staticImageSrc}
+              alt={`${id} section background`}
+              fill
+              className={cn(
+                "w-full h-full object-cover",
+                objectPosition
+              )}
+              priority={isHero || priorityImages.includes(id)}
+              sizes={imageSizes}
+              quality={imageQualityConfig[id] || 100}
+              loading={isHero || priorityImages.includes(id) ? 'eager' : 'lazy'}
+              placeholder="blur"
+              blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
+                `<svg width="${staticImageSrc.width}" height="${staticImageSrc.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f3f4f6"/></svg>`
+              ).toString('base64')}`}
+              style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+            />
+          ) : (
+            <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
+          )}
+
+          {/* Floating Action Button for mobile/tablet, only when in view */}
+          {isSectionInViewForAnimation && (
+            <button
+              type="button"
+              className="absolute bottom-4 right-4 xl:hidden flex items-center justify-center w-14 h-14 rounded-full bg-[#063f48] shadow-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              aria-label="Open contact and map"
+              onClick={() => setIsConnectFabExpanded(true)}
+            >
+              {/* Map/Location Icon */}
+              <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 0c-4.418 0-8 2.239-8 5v3h16v-3c0-2.761-3.582-5-8-5z" /></svg>
+            </button>
+          )}
+          {/* Modal for mobile/tablet */}
+          <Dialog open={isConnectFabExpanded} onClose={() => setIsConnectFabExpanded(false)} className="xl:hidden">
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center">
+              <Dialog.Panel className="w-full max-w-md mx-auto bg-white rounded-t-2xl sm:rounded-2xl p-4 pb-6 shadow-2xl relative">
+                <button
+                  type="button"
+                  className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded-full"
+                  aria-label="Close contact and map"
+                  onClick={() => setIsConnectFabExpanded(false)}
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <div className="flex flex-col items-center gap-4">
+                  {/* Socials */}
+                  <div className="flex items-center justify-center gap-4 mb-2">
+                    <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white"><svg viewBox="0 0 320 512" fill="currentColor" className="h-6 w-6"><path d="M279.14 288l14.22-92.66h-88.91V127.91c0-25.35 12.42-50.06 52.24-50.06H293V6.26S259.5 0 225.36 0c-73.22 0-121.09 44.38-121.09 124.72v70.62H22.89V288h81.38v224h100.2V288z" /></svg></a>
+                    <a href={INSTAGRAM_PAGE_URL} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white"><svg viewBox="0 0 448 512" fill="currentColor" className="h-6 w-6"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9 114.9-51.3 114.9-114.9S287.7 141 224.1 141zm0 186c-39.5 0-71.5-32-71.5-71.5s32-71.5 71.5-71.5 71.5 32 71.5 71.5-32 71.5-71.5 71.5zm146.4-194.3c0 14.9-12 26.9-26.9 26.9s-26.9-12-26.9-26.9 12-26.9 26.9-26.9 26.9 12 26.9 26.9zm76.1 27.2c-1.7-35.3-9.9-66.7-36.2-92.1C385.6 9.9 354.2 1.7 318.9 0 278.4-1.7 169.6-1.7 129.1 0 93.8 1.7 62.4 9.9 37.1 35.2 9.9 62.4 1.7 93.8 0 129.1c-1.7 40.5-1.7 149.3 0 189.8 1.7 35.3 9.9 66.7 36.2 92.1 27.2 27.2 58.6 35.4 93.9 37.1 40.5 1.7 149.3 1.7 189.8 0 35.3-1.7 66.7-9.9 92.1-36.2 27.2-27.2 35.4-58.6 37.1-93.9 1.7-40.5 1.7-149.3 0-189.8z" /></svg></a>
+                  </div>
+                  <button
+                    onClick={() => { onBookingClick(); setIsConnectFabExpanded(false); }}
+                    className="w-full group flex items-center justify-center gap-2 rounded-full bg-[#063f48] px-6 py-3 text-white text-base font-medium transition-all hover:scale-105 hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 mb-2"
+                  >
+                    <span>BOOK NOW</span>
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 5 7 7-7 7" /></svg>
+                  </button>
+                  <div className="w-full h-[160px] sm:h-[200px] rounded-lg overflow-hidden bg-white/95 p-1.5 shadow-xl backdrop-blur-md border border-gray-200/50">
+                    <Suspense fallback={<div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-100 text-gray-500 text-sm">Loading Map...</div>}>
+                      <GoogleMaps />
+                    </Suspense>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
+        </div>
+        {/* Desktop/XL version (unchanged) */}
+        <motion.div
+          className="hidden xl:flex absolute bottom-4 right-4 left-auto z-20 p-0"
+          variants={overlayVariants}
+          initial="initial"
+          animate={isSectionInViewForAnimation ? "animate" : "initial"}
+        >
+          <div className="flex flex-col xl:flex-row items-center xl:items-end gap-3 xl:gap-4 bg-black/40 xl:bg-transparent p-3 xl:p-0 rounded-lg xl:rounded-none">
+            {/* Map container: Move right on XL & responsive height */}
+            <div className="w-full max-w-full md:max-w-[360px] xl:max-w-[320px] lg:max-w-[360px] xl:w-[385px] h-[120px] sm:h-[150px] md:h-[180px] lg:h-[200px] xl:h-[284px] order-2 xl:order-2 xl:ml-auto">
+              <div className="h-full w-full overflow-hidden rounded-lg bg-white/95 p-1.5 shadow-xl backdrop-blur-md border border-gray-200/50">
+                <Suspense fallback={<div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-100 text-gray-500 text-sm">Loading Map...</div>}>
+                  <GoogleMaps />
+                </Suspense>
+              </div>
+            </div>
+            {/* Buttons/Social: Move left on XL */}
+            <div className="flex flex-row flex-wrap justify-center xl:flex-col items-center xl:items-start gap-2 md:gap-3 order-1 xl:order-1 w-full xl:w-auto xl:mr-44 xl:-translate-y-8">
+              <div className="flex items-center justify-center gap-3">
+                {[
+                  {
+                    href: FACEBOOK_PAGE_URL, label: "Facebook", IconSvg: (
+                      <svg viewBox="0 0 320 512" fill="currentColor" className="h-6 w-6 text-white mx-auto"><path d="M279.14 288l14.22-92.66h-88.91V127.91c0-25.35 12.42-50.06 52.24-50.06H293V6.26S259.5 0 225.36 0c-73.22 0-121.09 44.38-121.09 124.72v70.62H22.89V288h81.38v224h100.2V288z" /></svg>
+                    )
+                  },
+                  {
+                    href: INSTAGRAM_PAGE_URL, label: "Instagram", IconSvg: (
+                      <svg viewBox="0 0 448 512" fill="currentColor" className="h-6 w-6 text-white mx-auto"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9 114.9-51.3 114.9-114.9S287.7 141 224.1 141zm0 186c-39.5 0-71.5-32-71.5-71.5s32-71.5 71.5-71.5 71.5 32 71.5 71.5-32 71.5-71.5 71.5zm146.4-194.3c0 14.9-12 26.9-26.9 26.9s-26.9-12-26.9-26.9 12-26.9 26.9-26.9 26.9 12 26.9 26.9zm76.1 27.2c-1.7-35.3-9.9-66.7-36.2-92.1C385.6 9.9 354.2 1.7 318.9 0 278.4-1.7 169.6-1.7 129.1 0 93.8 1.7 62.4 9.9 37.1 35.2 9.9 62.4 1.7 93.8 0 129.1c-1.7 40.5-1.7 149.3 0 189.8 1.7 35.3 9.9 66.7 36.2 92.1 27.2 27.2 58.6 35.4 93.9 37.1 40.5 1.7 149.3 1.7 189.8 0 35.3-1.7 66.7-9.9 92.1-36.2 27.2-27.2 35.4-58.6 37.1-93.9 1.7-40.5 1.7-149.3 0-189.8z" /></svg>
+                    )
+                  }
+                ].map(social => (
+                  <a key={social.label} href={social.href} onClick={(e) => onSocialClick(e, social.href)} target="_blank" rel="noopener noreferrer" className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#063f48] transition-all hover:scale-105 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400" aria-label={social.label}>
+                    {social.IconSvg}
+                  </a>
+                ))}
+              </div>
+              <button
+                onClick={onBookingClick}
+                className="w-full sm:w-auto group relative flex items-center justify-center gap-2 rounded-full bg-[#063f48] px-4 py-2 md:px-6 md:py-3 text-white text-xs sm:text-sm font-medium transition-all hover:scale-105 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400"
+              >
+                <span>BOOK NOW</span>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 5 7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.section>
+    );
+  }
+
   return (
     <motion.section
-      ref={sectionRef}
+      ref={sectionRef as React.RefObject<HTMLElement>}
       id={id}
       className={sectionClasses}
       variants={sectionVariants}
@@ -344,46 +487,6 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
         </AnimatePresence>
       )}
 
-      {/* Connect Overlay: Adjusted layout breakpoints to XL */}
-      {overlay === 'connect' && (
-        <motion.div
-          // Position fixed bottom-right only on XL+
-          className="absolute bottom-0 left-0 right-0 xl:bottom-4 xl:right-4 xl:left-auto z-20 p-2 xl:p-0"
-          variants={overlayVariants}
-          initial="initial"
-          animate={isSectionInViewForAnimation ? "animate" : "initial"}
-        >
-          {/* Stack vertically by default, row layout only on XL+ */}
-          <div className="flex flex-col xl:flex-row items-center xl:items-end gap-3 xl:gap-4 bg-black/40 xl:bg-transparent p-3 xl:p-0 rounded-lg xl:rounded-none">
-            {/* Map container: Responsive width/height */}
-            <div className="w-full max-w-full md:max-w-[360px] xl:max-w-[320px] lg:max-w-[360px] xl:w-[385px] h-[180px] md:h-[220px] xl:h-[240px] xl:h-[284px] order-2 xl:order-1">
-              <div className="h-full w-full overflow-hidden rounded-lg bg-white/95 p-1.5 shadow-xl backdrop-blur-md border border-gray-200/50">
-                <Suspense fallback={<div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-100 text-gray-500 text-sm">Loading Map...</div>}>
-                  <GoogleMaps />
-                </Suspense>
-              </div>
-            </div>
-            {/* Buttons/Social: Centered row by default, vertical column start-aligned on XL+ */}
-            <div className="flex flex-row flex-wrap justify-center xl:flex-col items-center xl:items-start gap-2 md:gap-3 order-1 xl:order-2 w-full xl:w-auto">
-              <div className="flex items-center justify-center gap-3">
-                {[
-                  { href: FACEBOOK_PAGE_URL, label: "Facebook", IconSvg: <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" clipRule="evenodd" /></svg> },
-                  { href: INSTAGRAM_PAGE_URL, label: "Instagram", IconSvg: <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 0 1 1.772 1.153 4.902 4.902 0 0 1 1.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 0 1-1.153 1.772 4.902 4.902 0 0 1-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 0 1 1.153-1.772A4.902 4.902 0 0 1 6.08 2.525c.636-.247 1.363-.416 2.427-.465C9.53 2.013 9.884 2 12.315 2Zm0 1.623c-2.403 0-2.729.01-3.686.053-.94.044-1.514.196-2.023.387-.597.217-1.03.494-1.462.926-.432.432-.71.865-.926 1.462-.191.51-.343 1.083-.387 2.023-.043.957-.053 1.283-.053 3.686s.01 2.729.053 3.686c.044.94.196 1.514.387 2.023.216.597.494 1.03.926 1.462.432.432.865.71 1.462.926.51.191 1.083.343 2.023.387.957.043 1.283.053 3.686.053s2.729-.01 3.686-.053c.94-.044 1.514-.196 2.023-.387.597-.216 1.03-.494 1.462-.926.432.432.71-.865.926-1.462.191-.51.343-1.083.387-2.023.043-.957.053-1.283.053-3.686s-.01-2.729-.053-3.686c-.044-.94-.196-1.514-.387-2.023-.216-.597-.494-1.03-.926-1.462-.432-.432-.865-.71-1.462-.926-.51-.191-1.083.343-2.023-.387-.957-.043-1.283-.053-3.686-.053Zm0 3.448a4.632 4.632 0 1 0 0 9.264 4.632 4.632 0 0 0 0-9.264Zm0 1.623a3.01 3.01 0 1 1 0 6.02 3.01 3.01 0 0 1 0-6.02Zm6.536-3.34a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0Z" clipRule="evenodd" /></svg> }
-                ].map(social => (
-                  <a key={social.label} href={social.href} onClick={(e) => onSocialClick(e, social.href)} target="_blank" rel="noopener noreferrer" className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#063f48] transition-all hover:scale-105 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400" aria-label={social.label}>
-                    {social.IconSvg}
-                  </a>
-                ))}
-              </div>
-              <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto group relative flex items-center justify-center gap-2 rounded-full bg-[#063f48] px-4 py-2 md:px-6 md:py-3 text-white text-xs sm:text-sm font-medium transition-all hover:scale-105 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400">
-                <span>BOOK NOW</span>
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 5 7 7-7 7" /></svg>
-              </a>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
       {/* Bookbutton Overlay - WARNING: Pixel coords only reliable on XL+ screens */}
       {overlay === 'bookbutton' && isClient && (
         <div className="absolute inset-0 z-50 pointer-events-auto xl:pointer-events-auto hidden xl:block"> {/* Hide below XL */}
@@ -418,10 +521,10 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
 
       {/* Financing Button - Removed fixed pixel positioning */}
       {id === 'financing' && isClient && (
-        <div className="absolute inset-0 flex items-end justify-center pb-10 pointer-events-none hidden xl:flex"> {/* Show only on XL, example positioning */}
+        <div className="absolute inset-0 flex items-end justify-center pb-32 pointer-events-none hidden xl:flex">
           <button
             onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
-            className="px-8 py-4 bg-[#063f48] text-white text-lg font-semibold rounded-full shadow-lg hover:bg-[#05535e] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] pointer-events-auto" // Example visible button style
+            className="px-8 py-4 bg-transparent text-transparent text-lg font-semibold rounded-full hover:bg-transparent/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] pointer-events-auto translate-x-72 opacity-0"
             aria-label="Apply for Financing"
           >
             Apply for Financing
