@@ -11,6 +11,7 @@ import React, {
 } from 'react'
 import Image, { type StaticImageData } from 'next/image'
 import dynamic from 'next/dynamic'
+import Head from 'next/head'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { Dialog } from '@headlessui/react'
 import { cn } from '@/lib/utils'
@@ -163,10 +164,10 @@ const sectionsData: SectionData[] = [
   { id: 'policies', objectPosition: 'object-center' },
   { id: 'connect', overlay: 'connect', objectPosition: 'object-bottom xl:object-center' }, // Default bottom, center on XL
   { id: 'financing', objectPosition: 'object-center' },
-  { id: 'perm-makeup', objectPosition: 'object-center' },
-  { id: 'perm-medical', objectPosition: 'object-center' },
-  { id: 'facial', objectPosition: 'object-center' },
-  { id: 'eyelash', objectPosition: 'object-center' },
+  { id: 'perm-makeup', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
+  { id: 'perm-medical', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
+  { id: 'facial', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
+  { id: 'eyelash', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
 ];
 
 // --- Animation Variants ---
@@ -206,6 +207,9 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isConnectFabExpanded, setIsConnectFabExpanded] = useState(false);
+  
+  // Check if this is one of the sections that needs mobile buttons
+  const needsMobileButton = ['perm-makeup', 'perm-medical', 'facial', 'eyelash'].includes(id);
 
   // WARNING: These coordinates likely only work correctly on XL screens due to fixed height/width there.
   const [buttonPositions] = useState({
@@ -431,10 +435,16 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
             src={staticImageSrc}
             alt={`${id} section background`}
             fill
-            // Use object-cover by default (mobile, tablet), switch to contain only on XL screens
             className={cn(
-              "w-full h-full object-cover", // Always object-cover
-              objectPosition
+              "w-full h-full object-cover",
+              objectPosition.includes("xl:object-contain") ? "xl-object-contain" : "",
+              // Only use positioning part from objectPosition
+              objectPosition.includes("object-center") ? "object-center" : "",
+              objectPosition.includes("object-bottom") ? "object-bottom" : "",
+              objectPosition.includes("object-top") ? "object-top" : "",
+              objectPosition.includes("object-left") ? "object-left" : "",
+              objectPosition.includes("object-right") ? "object-right" : "",
+              objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
             )}
             priority={isHero || priorityImages.includes(id)}
             sizes={imageSizes}
@@ -448,6 +458,19 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           />
         ) : (
           <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
+        )}
+        
+        {/* Mobile Button for special sections */}
+        {needsMobileButton && isClient && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none xl:hidden">
+            <button
+              onClick={onBookingClick}
+              className="pointer-events-auto px-6 py-3 bg-[#063f48]/90 backdrop-blur-sm text-white text-base font-medium rounded-full shadow-lg hover:bg-[#063f48] transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]"
+              aria-label="Book an appointment for this service"
+            >
+              Book This Service
+            </button>
+          </div>
         )}
       </div>
 
@@ -642,6 +665,16 @@ export default function Home() {
         An error occurred. Please refresh the page.
       </div>
     }>
+      {/* Add global CSS for xl-object-contain */}
+      <Head>
+        <style>{`
+          @media (min-width: 1280px) {
+            .xl-object-contain {
+              object-fit: contain !important;
+            }
+          }
+        `}</style>
+      </Head>
       <div className="min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-fixed bg-center">
         <Navbar scrolled={scrolled} />
         <main

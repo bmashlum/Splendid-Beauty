@@ -137,6 +137,13 @@
     object-fit: cover;
     /* Default fit */
   }
+  
+  /* Custom object-fit for XL screens */
+  @media (min-width: 1280px) {
+    .xl-object-contain {
+      object-fit: contain !important;
+    }
+  }
 }
 
 /* Custom utility classes */
@@ -187,6 +194,13 @@ a {
 /* Ensure iframe has no default browser border */
 iframe {
   @apply border-none;
+}
+
+/* Video styling */
+video.xl-object-contain {
+  @media (min-width: 1280px) {
+    object-fit: contain !important;
+  }
 }
 
 /* Optional: Add any other global styles or component overrides below */

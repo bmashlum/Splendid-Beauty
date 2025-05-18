@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import Head from 'next/head';
 
 interface AnimatedImageProps {
     imagePath: string;
@@ -23,6 +24,8 @@ export default function AnimatedImage({
     priority = false,
     isInView = false,
 }: AnimatedImageProps) {
+    // Determine if we should use object-contain on XL screens
+    const shouldUseContainXL = objectPosition.includes('xl:object-contain');
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const [hasVideoEnded, setHasVideoEnded] = useState(false);
@@ -68,15 +71,32 @@ export default function AnimatedImage({
 
     return (
         <div className="relative w-full h-full overflow-hidden">
+            {shouldUseContainXL && (
+                <Head>
+                    <style>{`
+                        @media (min-width: 1280px) {
+                            .xl-object-contain {
+                                object-fit: contain !important;
+                            }
+                        }
+                    `}</style>
+                </Head>
+            )}
             {/* Static Image Layer */}
             <div className="absolute inset-0">
                 <Image
                     src={imagePath}
                     alt={alt}
-                    // Use object-cover by default (mobile, tablet), switch to contain only on XL screens
                     className={cn(
-                        "w-full h-full object-cover", // Always object-cover
-                        objectPosition
+                        "w-full h-full object-cover",
+                        shouldUseContainXL ? "xl-object-contain" : "",
+                        // Only use positioning part from objectPosition
+                        objectPosition.includes("object-center") ? "object-center" : "",
+                        objectPosition.includes("object-bottom") ? "object-bottom" : "",
+                        objectPosition.includes("object-top") ? "object-top" : "",
+                        objectPosition.includes("object-left") ? "object-left" : "",
+                        objectPosition.includes("object-right") ? "object-right" : "",
+                        objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
                     )}
                     fill
                     priority={priority}
@@ -99,10 +119,16 @@ export default function AnimatedImage({
             {isVideoSupported && (
                 <motion.video
                     ref={videoRef}
-                    // Use object-cover by default (mobile, tablet), switch to contain only on XL screens
                     className={cn(
-                        "absolute inset-0 h-full w-full object-cover", // Always object-cover
-                        objectPosition
+                        "absolute inset-0 h-full w-full object-cover",
+                        shouldUseContainXL ? "xl-object-contain" : "",
+                        // Only use positioning part from objectPosition
+                        objectPosition.includes("object-center") ? "object-center" : "",
+                        objectPosition.includes("object-bottom") ? "object-bottom" : "",
+                        objectPosition.includes("object-top") ? "object-top" : "",
+                        objectPosition.includes("object-left") ? "object-left" : "",
+                        objectPosition.includes("object-right") ? "object-right" : "",
+                        objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
                     )}
                     playsInline
                     muted
