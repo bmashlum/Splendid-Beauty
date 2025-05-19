@@ -23,7 +23,6 @@ import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
 
 // --- Schema Imports ---
-import dynamic from 'next/dynamic'
 const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { ssr: false })
 
 // Create a new component for the iframe modal
@@ -341,9 +340,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
               quality={imageQualityConfig[id] || 100}
               loading={isHero || priorityImages.includes(id) ? 'eager' : 'lazy'}
               placeholder="blur"
-              blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                `<svg width="${staticImageSrc.width}" height="${staticImageSrc.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f3f4f6"/></svg>`
-              ).toString('base64')}`}
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmM2Y0ZjYiLz48L3N2Zz4="
               style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
             />
           ) : (
