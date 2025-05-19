@@ -2,7 +2,8 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import Head from 'next/head';
+// Remove unused Head import for better performance
+import dynamic from 'next/dynamic';
 
 interface AnimatedImageProps {
     imagePath: string;
@@ -30,21 +31,36 @@ export default function AnimatedImage({
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const [hasVideoEnded, setHasVideoEnded] = useState(false);
     const [videoError, setVideoError] = useState(false);
-    const [isVideoSupported, setIsVideoSupported] = useState(true);
+    const [isVideoSupported, setIsVideoSupported] = useState(false);
     const [isVideoTagReady, setIsVideoTagReady] = useState(false);
     const [canVideoActuallyPlay, setCanVideoActuallyPlay] = useState(false);
     const [isVideoFading, setIsVideoFading] = useState(false);
 
     useEffect(() => {
+        // Check if window exists (client-side only)
         if (typeof window !== 'undefined') {
+            // Check if user prefers reduced motion
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            
+            if (prefersReducedMotion) {
+                // Skip video for users who prefer reduced motion
+                setIsVideoSupported(false);
+                return;
+            }
+            
+            // Check device capabilities
             const video = document.createElement('video');
             const isVideoTypeSupported = !!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4'));
             
             // Check if device is iOS (iPhone, iPad)
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
             
-            // Set support based on both video type support and not being iOS (since iOS has autoplay limitations)
-            setIsVideoSupported(isVideoTypeSupported);
+            // Check if on mobile network
+            const connection = (navigator as any).connection;
+            const isSaveData = connection && (connection.saveData || connection.effectiveType === '2g' || connection.effectiveType === '3g');
+            
+            // Only support video on desktop and non-iOS devices that aren't in save-data mode
+            setIsVideoSupported(isVideoTypeSupported && !isIOS && !isSaveData);
         }
     }, []);
 
@@ -95,17 +111,7 @@ export default function AnimatedImage({
 
     return (
         <div className="relative w-full h-full overflow-hidden">
-            {shouldUseContainXL && (
-                <Head>
-                    <style>{`
-                        @media (min-width: 1280px) {
-                            .xl-object-contain {
-                                object-fit: contain !important;
-                            }
-                        }
-                    `}</style>
-                </Head>
-            )}
+            {/* Remove inline styles from Head for better performance */}
             {/* Static Image Layer */}
             <div className="absolute inset-0">
                 <Image
@@ -113,7 +119,7 @@ export default function AnimatedImage({
                     alt={alt}
                     className={cn(
                         "w-full h-full object-cover",
-                        shouldUseContainXL ? "xl-object-contain" : "",
+                        shouldUseContainXL ? "xl:object-contain" : "",
                         // Only use positioning part from objectPosition
                         objectPosition.includes("object-center") ? "object-center" : "",
                         objectPosition.includes("object-bottom") ? "object-bottom" : "",
@@ -125,8 +131,7 @@ export default function AnimatedImage({
                     fill
                     priority={priority}
                     sizes={sizes}
-                    quality={100}
-                    unoptimized={true}
+                    quality={80}
                     loading={priority ? "eager" : "lazy"}
                     placeholder="blur"
                     blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
@@ -145,7 +150,7 @@ export default function AnimatedImage({
                     ref={videoRef}
                     className={cn(
                         "absolute inset-0 h-full w-full object-cover",
-                        shouldUseContainXL ? "xl-object-contain" : "",
+                        shouldUseContainXL ? "xl:object-contain" : "",
                         // Only use positioning part from objectPosition
                         objectPosition.includes("object-center") ? "object-center" : "",
                         objectPosition.includes("object-bottom") ? "object-bottom" : "",
@@ -156,18 +161,18 @@ export default function AnimatedImage({
                     )}
                     playsInline
                     muted
-                    autoPlay
+                    autoPlay={false} /* Disable autoplay - we control this via isInView */
                     loop={false}
-                    preload="auto"
+                    preload="metadata" /* Only preload metadata for better performance */
                     initial={{ opacity: 0 }}
                     animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
                     transition={{ duration: 0.5 }}
-                    onLoadedData={() => {
+                    onLoadedMetadata={() => { /* Use lighter onLoadedMetadata instead of onLoadedData */
                         setIsVideoTagReady(true);
                         if (videoRef.current?.play) {
                             setCanVideoActuallyPlay(true);
                         } else {
-                            console.warn("Video element missing play function onLoadedData");
+                            console.warn("Video element missing play function");
                             setCanVideoActuallyPlay(false);
                             setVideoError(true);
                         }
@@ -190,8 +195,8 @@ export default function AnimatedImage({
                         setCanVideoActuallyPlay(false);
                         setIsVideoFading(false);
                     }}
-                    src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
-                    poster={imagePath} // Use the static image as a fallback poster
+                    src={isInView ? videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4') : ''} /* Only set src when in view */
+                    poster={imagePath} /* Use the static image as a fallback poster */
                 >
                     Your browser does not support the video tag.
                 </motion.video>

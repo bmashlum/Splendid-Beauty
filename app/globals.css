@@ -157,8 +157,9 @@
   background-image: url('/images/elegant-gold-background.webp');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* Apply fixed positioning to all screen sizes */
+  background-attachment: scroll; /* Changed from fixed to scroll for better performance */
   image-rendering: auto;
+  will-change: transform; /* Hardware acceleration hint */
   /* Higher quality image rendering */
 }
 
@@ -175,7 +176,10 @@
 @media (min-width: 768px) {
   .bg-\[url\(\'\/images\/elegant-gold-background\.webp\'\)\] {
     background-size: cover;
-    background-attachment: fixed;
+    /* Use scroll instead of fixed for better performance on all devices */
+    background-attachment: scroll;
+    /* Apply transform to create a containing block for better scroll performance */
+    transform: translateZ(0);
   }
 }
 

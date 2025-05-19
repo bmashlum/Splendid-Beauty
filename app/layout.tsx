@@ -5,11 +5,18 @@ import '@/app/globals.css'
 
 import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',  // Use 'swap' to prevent FOIT
+  preload: true     // Preload the font files
+})
+
 const forum = Forum({
   weight: '400',
   subsets: ['latin'],
-  variable: '--font-forum'
+  variable: '--font-forum',
+  display: 'swap',  // Use 'swap' to prevent FOIT
+  preload: true     // Preload the font files
 })
 
 /* -------------------------------------------------------------------------- */
@@ -80,16 +87,32 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* 🚀 Pre-load the only heavyweight raster so it starts downloading during HTML parse */}
+        {/* Resource hints for faster loading */}
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        
+        {/* DNS prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        
+        {/* Preconnect to establish early connections */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Preload critical assets */}
         <link
           rel="preload"
           as="image"
           href="/images/elegant-gold-background.webp"
           fetchPriority="high"
+          type="image/webp"
         />
-
-        {/* Viewport for responsiveness */}
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        
+        {/* Pre-render hints to improve Core Web Vitals */}
+        <meta name="theme-color" content="#C09E6C" />
+        
+        {/* Performance hints */}
+        <meta httpEquiv="x-dns-prefetch-control" content="on" />
+        <meta httpEquiv="Cache-Control" content="public, max-age=31536000, immutable" />
         
         {/* Favicon and other icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
