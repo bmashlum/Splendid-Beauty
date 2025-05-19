@@ -83,16 +83,16 @@ const staticImageImports: Record<string, () => Promise<{ default: StaticImageDat
   'eyelash': () => import('@/public/images/eyelash.webp')
 };
 
-// Add image quality configuration
+// Add image quality configuration - lowered for better performance
 const imageQualityConfig: Record<string, number> = {
-  'about': 100, 'award-1': 100, 'award-2': 100, 'we-do-that': 100, 'book-now': 100,
-  'true-beauty': 100, 'portfolio': 100, 'shop': 100, 'hair-studio': 100, 'academy': 100,
-  'policies': 100, 'connect': 100, 'financing': 100, 'perm-makeup': 100,
-  'perm-medical': 100, 'facial': 100, 'eyelash': 100
+  'hero': 85, 'about': 85, 'award-1': 85, 'award-2': 85, 'we-do-that': 85, 'book-now': 85,
+  'true-beauty': 80, 'portfolio': 80, 'shop': 80, 'hair-studio': 80, 'academy': 80,
+  'policies': 80, 'connect': 80, 'financing': 80, 'perm-makeup': 80,
+  'perm-medical': 80, 'facial': 80, 'eyelash': 80
 };
 
 // Add priority configuration for above-the-fold images
-const priorityImages = ['about', 'award-1', 'award-2', 'we-do-that', 'book-now'];
+const priorityImages = ['hero', 'about', 'award-1', 'award-2', 'we-do-that'];
 
 // --- Configuration Constants ---
 const FACEBOOK_PAGE_URL = "https://www.facebook.com/splendidbeautybarandco";
@@ -220,7 +220,7 @@ const aboutTextVariants = {
 
 // --- Section Component ---
 interface SectionProps {
-  section: SectionData;
+  section: SectionData & { priority?: boolean };
   onVideoClick: () => void;
   onSocialClick: (event: React.MouseEvent, url: string) => void;
   loadedImages: Record<string, StaticImageData | null>;
@@ -323,8 +323,9 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
               alt={`${id} section background`}
               sizes={imageSizes}
               objectPosition={objectPosition}
-              priority={isHero || priorityImages.includes(id)}
-              isInView={isSectionInViewForPlayback}
+              priority={isHero || section.priority || priorityImages.includes(id)}
+              isInView={isHero ? true : isSectionInViewForPlayback}
+              imageOnly={isHero}
             />
           ) : staticImageSrc ? (
             <Image
@@ -461,8 +462,9 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
             alt={getAltText(id)}
             sizes={imageSizes}
             objectPosition={objectPosition}
-            priority={isHero || priorityImages.includes(id)}
-            isInView={isSectionInViewForPlayback}
+            priority={isHero || section.priority || priorityImages.includes(id)}
+            isInView={isHero ? true : isSectionInViewForPlayback}
+            imageOnly={isHero}
           />
         ) : staticImageSrc ? (
           <Image
@@ -480,15 +482,17 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
               objectPosition.includes("object-right") ? "object-right" : "",
               objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
             )}
-            priority={isHero || priorityImages.includes(id)}
+            priority={isHero || section.priority || priorityImages.includes(id)}
             sizes={imageSizes}
-            quality={imageQualityConfig[id] || 100}
-            loading={isHero || priorityImages.includes(id) ? 'eager' : 'lazy'}
+            quality={imageQualityConfig[id] || 80}
+            loading={isHero || section.priority || priorityImages.includes(id) ? 'eager' : 'lazy'}
             placeholder="blur"
-            blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-              `<svg width="${staticImageSrc.width}" height="${staticImageSrc.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f3f4f6"/></svg>`
-            ).toString('base64')}`}
-            style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmM2Y0ZjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlNWU3ZWIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2cpIi8+PC9zdmc+"
+            style={{ 
+              transform: 'translateZ(0)', 
+              backfaceVisibility: 'hidden',
+              willChange: isHero ? 'transform' : 'auto'
+            }}
           />
         ) : (
           <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
@@ -720,29 +724,68 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const loadAllStaticImages = async () => {
+    const loadPriorityStaticImages = async () => {
       setImagesLoading(true);
-      const imagePromises = Object.entries(staticImageImports).map(async ([id, importFn]) => {
+      
+      // First, load only priority images (hero + above fold)
+      const priorityImportEntries = Object.entries(staticImageImports)
+        .filter(([id]) => id === 'hero' || priorityImages.includes(id));
+        
+      const priorityImagePromises = priorityImportEntries.map(async ([id, importFn]) => {
         try {
           const module = await importFn();
           return { id, image: module.default };
         } catch (error) {
-          console.error(`Failed to load image for section ${id}:`, error);
+          console.error(`Failed to load priority image for section ${id}:`, error);
           return { id, image: null };
         }
       });
-      const settledImages = await Promise.all(imagePromises);
+      
+      // Load hero and priority images first
+      const settledPriorityImages = await Promise.all(priorityImagePromises);
       const newLoadedImages: Record<string, StaticImageData | null> = {};
-      settledImages.forEach(result => {
+      settledPriorityImages.forEach(result => {
         if (result) {
           newLoadedImages[result.id] = result.image;
         }
       });
+      
+      // Update state with just priority images to start rendering quickly
       setLoadedImages(newLoadedImages);
       setImagesLoading(false);
+      
+      // Then load remaining images after a small delay
+      setTimeout(() => {
+        const remainingImportEntries = Object.entries(staticImageImports)
+          .filter(([id]) => id !== 'hero' && !priorityImages.includes(id));
+          
+        const remainingImagePromises = remainingImportEntries.map(async ([id, importFn]) => {
+          try {
+            const module = await importFn();
+            return { id, image: module.default };
+          } catch (error) {
+            console.error(`Failed to load image for section ${id}:`, error);
+            return { id, image: null };
+          }
+        });
+        
+        // Process remaining images in batches to avoid blocking the main thread
+        Promise.all(remainingImagePromises).then(settledImages => {
+          setLoadedImages(prevImages => {
+            const updatedImages = { ...prevImages };
+            settledImages.forEach(result => {
+              if (result) {
+                updatedImages[result.id] = result.image;
+              }
+            });
+            return updatedImages;
+          });
+        });
+      }, 1000); // Delay non-priority images by 1 second
     };
-    loadAllStaticImages();
-  }, []);
+    
+    loadPriorityStaticImages();
+  }, [priorityImages]);
 
   useEffect(() => {
     const el = mainRef.current;
@@ -777,14 +820,25 @@ export default function Home() {
   const sectionsToRender = useMemo(() => sectionsData.filter(s => s.id !== 'hero'), []);
   const heroSectionData = useMemo(() => sectionsData.find(s => s.id === 'hero'), []);
 
+  // Avoid loading fallback to improve FCP/LCP
   if (imagesLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="h-16 w-16 border-4 border-t-[#063f48] border-r-[#063f48]/50 border-b-[#063f48]/50 border-l-[#063f48]/50 rounded-full"
-        />
+      <div className="min-h-screen bg-[#f9f7e8]" 
+        style={{ 
+          backgroundImage: "url('/images/elegant-gold-background.webp')",
+          backgroundColor: "#f9f7e8", 
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}>
+        <Navbar scrolled={false} />
+        <main className="h-screen flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, rotate: 360 }}
+            transition={{ opacity: { duration: 0.3 }, rotate: { duration: 1, repeat: Infinity, ease: "linear" } }}
+            className="h-12 w-12 border-3 border-t-[#063f48] border-r-[#063f48]/30 border-b-[#063f48]/30 border-l-[#063f48]/30 rounded-full"
+          />
+        </main>
       </div>
     );
   }
@@ -799,12 +853,30 @@ export default function Home() {
       <SEOSchema />
       {/* Add global CSS for xl-object-contain */}
       <Head>
+        {/* Preload critical background and LCP hero image */}
         <link 
           rel="preload" 
           href="/images/elegant-gold-background.webp" 
           as="image" 
           type="image/webp"
+          fetchpriority="high"
         />
+        <link 
+          rel="preload" 
+          href="/images/Home.webp" 
+          as="image" 
+          type="image/webp"
+          fetchpriority="high"
+        />
+        
+        {/* Preconnect to external domains */}
+        <link rel="preconnect" href="https://boulevard.io" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://dashboard.boulevard.io" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://blvd.me" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.youtube.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        
+        {/* XL object-contain style */}
         <style>{`
           @media (min-width: 1280px) {
             .xl-object-contain {
@@ -814,12 +886,14 @@ export default function Home() {
         `}</style>
       </Head>
       <div 
-        className="min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-center" 
+        className="min-h-screen bg-[#f9f7e8]" 
         style={{ 
           backgroundImage: "url('/images/elegant-gold-background.webp')",
           backgroundColor: "#f9f7e8", /* Fallback color */
           backgroundSize: "cover",
-          backgroundPosition: "center"
+          backgroundPosition: "center",
+          willChange: "transform",
+          transform: "translateZ(0)"
         }}>
         <Navbar scrolled={scrolled} />
         <main
@@ -832,7 +906,7 @@ export default function Home() {
             {heroSectionData && (
               <Section
                 key={heroSectionData.id}
-                section={heroSectionData}
+                section={{...heroSectionData, priority: true}}
                 onVideoClick={handleVideoClick}
                 onSocialClick={handleSocialClick}
                 loadedImages={loadedImages}

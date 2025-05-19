@@ -13,6 +13,7 @@ interface AnimatedImageProps {
     objectPosition?: string;
     priority?: boolean;
     isInView?: boolean;
+    imageOnly?: boolean; // Only load image, skip video for critical LCP elements
 }
 
 export default function AnimatedImage({
@@ -24,6 +25,7 @@ export default function AnimatedImage({
     objectPosition = 'object-center',
     priority = false,
     isInView = false,
+    imageOnly = false,
 }: AnimatedImageProps) {
     // Determine if we should use object-contain on XL screens
     const shouldUseContainXL = objectPosition.includes('xl:object-contain');
@@ -144,8 +146,8 @@ export default function AnimatedImage({
                 />
             </div>
 
-            {/* Video Layer */}
-            {isVideoSupported && (
+            {/* Video Layer - Skip for image-only mode */}
+            {isVideoSupported && !imageOnly && (
                 <motion.video
                     ref={videoRef}
                     className={cn(
