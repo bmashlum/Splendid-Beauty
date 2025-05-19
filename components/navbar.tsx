@@ -123,7 +123,8 @@ export default function Navbar({ scrolled: initialScrolled = false }: NavbarProp
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ease-in-out",
-          "bg-white/30 backdrop-blur-sm shadow-lg border border-white/20"
+          "bg-white/30 backdrop-blur-sm shadow-lg border border-white/20",
+          "mobile-navbar" // Add a special class for mobile styling
         )}
         role="banner"
       >

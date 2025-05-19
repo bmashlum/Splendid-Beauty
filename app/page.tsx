@@ -149,7 +149,7 @@ type SectionData = {
 
 const sectionsData: SectionData[] = [
   // Adjusted connect objectPosition slightly for default/XL
-  { id: 'hero', objectPosition: 'object-center' },
+  { id: 'hero', objectPosition: 'object-[center_top_15%] sm:object-center' }, // Shift image down 15% on mobile
   { id: 'events', content: <EventsSection /> },
   { id: 'about-us', objectPosition: 'object-center' },
   { id: 'award-1', objectPosition: 'object-center' },
@@ -254,13 +254,19 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
 
   // Section container classes: Full width/aspect-video by default, constrained on XL+
   const sectionClasses = cn(
-    'relative w-full overflow-hidden my-1 sm:my-4 lg:my-6', // Common margins
+    'relative w-full overflow-hidden', // Common base classes
     isHero
-      ? 'aspect-video md:h-[70vh] xl:h-screen xl:w-full' // Hero: aspect-video on small, 70vh on medium, full screen/width on xl
+      ? [
+          'mt-28 sm:mt-20 md:mt-20 lg:mt-6', // Even more top margin on mobile
+          'aspect-[16/10] sm:aspect-video md:h-[70vh] xl:h-screen xl:w-full', // Different aspect ratio on mobile
+          'my-0 sm:my-0 md:my-0', // No additional vertical margins for hero
+          'pt-12 sm:pt-0' // Additional padding at the top for mobile
+        ]
       : [ // Other sections:
-        'aspect-video xl:h-[95vh]', // Handles height across breakpoints
-        'xl:w-[95%] xl:mx-auto xl:rounded-lg xl:shadow-lg' // XL specific width, centering, and styling
-      ]
+          'my-1 sm:my-4 lg:my-6', // Margins for non-hero sections
+          'aspect-video xl:h-[95vh]', // Handles height across breakpoints
+          'xl:w-[95%] xl:mx-auto xl:rounded-lg xl:shadow-lg' // XL specific width, centering, and styling
+        ]
   );
 
   // Sizes prop: 100vw up to XL, then 80vw
@@ -460,18 +466,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
         )}
         
-        {/* Mobile Button for special sections */}
-        {needsMobileButton && isClient && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none xl:hidden">
-            <button
-              onClick={onBookingClick}
-              className="pointer-events-auto px-6 py-3 bg-[#063f48]/90 backdrop-blur-sm text-white text-base font-medium rounded-full shadow-lg hover:bg-[#063f48] transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]"
-              aria-label="Book an appointment for this service"
-            >
-              Book This Service
-            </button>
-          </div>
-        )}
+        {/* Mobile Button for special sections - Removed as requested */}
       </div>
 
       {/* Video Button Overlay */}
@@ -510,49 +505,156 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
         </AnimatePresence>
       )}
 
-      {/* Bookbutton Overlay - WARNING: Pixel coords only reliable on XL+ screens */}
+      {/* Bookbutton Overlay - Desktop and Mobile */}
       {overlay === 'bookbutton' && isClient && (
-        <div className="absolute inset-0 z-50 pointer-events-auto xl:pointer-events-auto hidden xl:block"> {/* Hide below XL */}
-          <div style={{ position: 'absolute', left: buttonPositions.bookAppointment.x, top: buttonPositions.bookAppointment.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
-            <button onClick={onBookingClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Book an appointment">
-              Book Your Appointment
-            </button>
+        <>
+          {/* Desktop buttons with fixed positioning (original) */}
+          <div className="absolute inset-0 z-50 pointer-events-auto xl:pointer-events-auto hidden xl:block"> {/* Hide below XL */}
+            <div style={{ position: 'absolute', left: buttonPositions.bookAppointment.x, top: buttonPositions.bookAppointment.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
+              <button onClick={onBookingClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Book an appointment">
+                Book Your Appointment
+              </button>
+            </div>
+            <div style={{ position: 'absolute', left: buttonPositions.chatProfessional.x, top: buttonPositions.chatProfessional.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
+              <button onClick={onContactClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Contact us">
+                Chat With A Professional
+              </button>
+            </div>
+            <div style={{ position: 'absolute', left: buttonPositions.giftCertificate.x, top: buttonPositions.giftCertificate.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
+              <button onClick={onGiftCardClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Buy gift cards">
+                Purchase A Gift Certificate
+              </button>
+            </div>
           </div>
-          <div style={{ position: 'absolute', left: buttonPositions.chatProfessional.x, top: buttonPositions.chatProfessional.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
-            <button onClick={onContactClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Contact us">
-              Chat With A Professional
-            </button>
+
+          {/* Mobile buttons at same positions with responsive sizing */}
+          <div className="absolute inset-0 z-50 pointer-events-auto xl:hidden">
+            {/* Book Appointment Button - Responsive sizing based on viewport */}
+            <div className="absolute left-1/4 top-[64%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
+              <button 
+                onClick={onBookingClick} 
+                className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                style={{ 
+                  width: "calc(40vw)", 
+                  height: "calc(8vw)",
+                  maxWidth: "292px",
+                  maxHeight: "57px",
+                  minWidth: "120px",
+                  minHeight: "30px"
+                }} 
+                aria-label="Book an appointment"
+              >
+                Book Appointment
+              </button>
+            </div>
+            
+            {/* Chat With A Professional Button - Responsive sizing based on viewport */}
+            <div className="absolute left-3/4 top-[64%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
+              <button 
+                onClick={onContactClick} 
+                className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                style={{ 
+                  width: "calc(40vw)", 
+                  height: "calc(8vw)",
+                  maxWidth: "292px",
+                  maxHeight: "57px",
+                  minWidth: "120px",
+                  minHeight: "30px"
+                }} 
+                aria-label="Contact us"
+              >
+                Chat With Professional
+              </button>
+            </div>
+            
+            {/* Gift Certificate Button - Responsive sizing based on viewport */}
+            <div className="absolute left-1/2 top-[79%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
+              <button 
+                onClick={onGiftCardClick} 
+                className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                style={{ 
+                  width: "calc(40vw)", 
+                  height: "calc(8vw)",
+                  maxWidth: "292px",
+                  maxHeight: "57px",
+                  minWidth: "120px",
+                  minHeight: "30px"
+                }} 
+                aria-label="Buy gift cards"
+              >
+                Gift Certificate
+              </button>
+            </div>
           </div>
-          <div style={{ position: 'absolute', left: buttonPositions.giftCertificate.x, top: buttonPositions.giftCertificate.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
-            <button onClick={onGiftCardClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Buy gift cards">
-              Purchase A Gift Certificate
-            </button>
-          </div>
-        </div>
+        </>
       )}
 
-      {/* Hair Studio Contact Button - Removed fixed pixel positioning */}
+      {/* Hair Studio Contact Button - Mobile and Desktop */}
       {id === 'hair-studio' && isClient && (
-        <button
-          onClick={onContactClick}
-          className="contact-btn hidden xl:block absolute left-[78%] top-[83%] transform -translate-y-1/2 z-50 px-10 py-10 bg-white/90 backdrop-blur-sm text-[#063f48] text-lg font-bold rounded-full shadow-xl hover:bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer opacity-0"
-          aria-label="Contact us for hair studio"
-        >
-          Contact Us
-        </button>
+        <>
+          {/* Desktop button (original) */}
+          <button
+            onClick={onContactClick}
+            className="contact-btn hidden xl:block absolute left-[78%] top-[83%] transform -translate-y-1/2 z-50 px-10 py-10 bg-white/90 backdrop-blur-sm text-[#063f48] text-lg font-bold rounded-full shadow-xl hover:bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer opacity-0"
+            aria-label="Contact us for hair studio"
+          >
+            Contact Us
+          </button>
+          
+          {/* Mobile button at same position with responsive sizing */}
+          <button
+            onClick={onContactClick}
+            className="xl:hidden absolute left-[78%] top-[83%] transform -translate-y-1/2 -translate-x-1/2 z-50 bg-transparent text-transparent rounded-full hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer pointer-events-auto"
+            aria-label="Contact us for hair studio"
+            style={{ 
+              width: "calc(40vw)", 
+              height: "calc(8vw)",
+              maxWidth: "292px",
+              maxHeight: "57px",
+              minWidth: "120px",
+              minHeight: "30px"
+            }}
+          >
+            Contact Us
+          </button>
+        </>
       )}
 
-      {/* Financing Button - Removed fixed pixel positioning */}
+      {/* Financing Button - Mobile and Desktop */}
       {id === 'financing' && isClient && (
-        <div className="absolute inset-0 flex items-end justify-center pb-32 pointer-events-none hidden xl:flex">
-          <button
-            onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
-            className="px-8 py-4 bg-transparent text-transparent text-lg font-semibold rounded-full hover:bg-transparent/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] pointer-events-auto translate-x-72 opacity-0"
-            aria-label="Apply for Financing"
-          >
-            Apply for Financing
-          </button>
-        </div>
+        <>
+          {/* Desktop button with fixed positioning (original) */}
+          <div className="absolute inset-0 flex items-end justify-center pb-32 pointer-events-none hidden xl:flex">
+            <button
+              onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
+              className="px-8 py-4 bg-transparent text-transparent text-lg font-semibold rounded-full hover:bg-transparent/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] pointer-events-auto translate-x-72 opacity-0"
+              aria-label="Apply for Financing"
+            >
+              Apply for Financing
+            </button>
+          </div>
+          
+          {/* Mobile button positioned exactly like the desktop version for Financing - smaller and lower */}
+          <div className="absolute inset-0 xl:hidden">
+            <div className="absolute bottom-[17%] left-1/2 transform translate-x-[-50%] z-50">
+              <button
+                onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
+                className="bg-transparent text-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                style={{ 
+                  width: "calc(40vw)", 
+                  height: "calc(8vw)",
+                  maxWidth: "250px",
+                  maxHeight: "50px",
+                  minWidth: "150px",
+                  minHeight: "35px"
+                }}
+                aria-label="Apply for Financing"
+              >
+                Apply for Financing
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </motion.section>
   );
@@ -693,7 +795,7 @@ export default function Home() {
         <main
           ref={mainRef}
           id="main-content"
-          className="h-screen overflow-y-auto overflow-x-hidden scroll-smooth focus:outline-none"
+          className="h-screen overflow-y-auto overflow-x-hidden scroll-smooth focus:outline-none pt-6 sm:pt-4"
           tabIndex={-1}
         >
           <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl text-gray-700">Loading Sections...</div>}>

@@ -157,9 +157,6 @@ export default function AnimatedImage({
                     playsInline
                     muted
                     autoPlay
-                    playsinline="true"
-                    webkit-playsinline="true"
-                    x5-playsinline="true"
                     loop={false}
                     preload="auto"
                     initial={{ opacity: 0 }}

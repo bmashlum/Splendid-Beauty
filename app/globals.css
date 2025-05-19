@@ -213,4 +213,13 @@ video.xl-object-contain {
   }
 }
 
+/* Mobile navbar styling */
+@media (max-width: 767px) {
+  .mobile-navbar {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(4px) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
 /* Optional: Add any other global styles or component overrides below */
