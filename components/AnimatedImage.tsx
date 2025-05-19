@@ -38,7 +38,13 @@ export default function AnimatedImage({
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const video = document.createElement('video');
-            setIsVideoSupported(!!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4')));
+            const isVideoTypeSupported = !!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4'));
+            
+            // Check if device is iOS (iPhone, iPad)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+            
+            // Set support based on both video type support and not being iOS (since iOS has autoplay limitations)
+            setIsVideoSupported(isVideoTypeSupported);
         }
     }, []);
 
@@ -46,14 +52,32 @@ export default function AnimatedImage({
         if (videoRef.current && !videoError) {
             try {
                 videoRef.current.currentTime = 0;
-                await videoRef.current.play();
-                setIsVideoLoaded(true);
-                setHasVideoEnded(false);
-                setIsVideoFading(false);
+                // Try to play and catch any autoplay restrictions
+                const playPromise = videoRef.current.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Autoplay started successfully
+                        setIsVideoLoaded(true);
+                        setHasVideoEnded(false);
+                        setIsVideoFading(false);
+                    }).catch(error => {
+                        // Autoplay was prevented
+                        console.warn('Video autoplay prevented:', error);
+                        
+                        // On mobile, instead of marking as error, just consider it ended
+                        // This will fall back to the static image without error state
+                        setHasVideoEnded(true);
+                        
+                        // Don't set video error, which would prevent future attempts
+                        // setVideoError(true);
+                        // setCanVideoActuallyPlay(false);
+                    });
+                }
             } catch (error) {
-                console.warn('Video autoplay/play failed:', error);
-                setVideoError(true);
-                setCanVideoActuallyPlay(false);
+                console.warn('Video play attempt failed:', error);
+                // Same fallback as above
+                setHasVideoEnded(true);
             }
         }
     }, [videoError]);
@@ -132,6 +156,10 @@ export default function AnimatedImage({
                     )}
                     playsInline
                     muted
+                    autoPlay
+                    playsinline="true"
+                    webkit-playsinline="true"
+                    x5-playsinline="true"
                     loop={false}
                     preload="auto"
                     initial={{ opacity: 0 }}
@@ -166,6 +194,7 @@ export default function AnimatedImage({
                         setIsVideoFading(false);
                     }}
                     src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
+                    poster={imagePath} // Use the static image as a fallback poster
                 >
                     Your browser does not support the video tag.
                 </motion.video>
