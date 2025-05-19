@@ -18,23 +18,24 @@ const forum = Forum({
 export const metadata: Metadata = {
   metadataBase: new URL('https://splendidbeautybar.com'),
   title:
-    'Splendid Beauty Bar & Co. | Facials • Brows • Peels | Atlanta, Georgia',
+    'Splendid Beauty Bar & Co. | Premium Skincare & Beauty Services | Atlanta',
   description:
-    "Atlanta's boutique beauty studio specializing in corrective facials, brow artistry and clinical peels.",
+    "Atlanta's premier beauty studio offering luxury facials, expert brow artistry, clinical peels, eyelash enhancements, and permanent makeup services. Book your beauty transformation today.",
+  keywords: "Atlanta beauty studio, facial spa, brow specialists, clinical peels, eyelash extensions, permanent makeup, beauty services, Atlanta skincare, luxury beauty treatments",
   alternates: { canonical: '/' },
   openGraph: {
     title:
-      'Splendid Beauty Bar & Co. | Facials • Brows • Peels | Atlanta, Georgia',
+      'Splendid Beauty Bar & Co. | Premium Beauty Services | Atlanta, Georgia',
     description:
-      "Atlanta's boutique beauty studio specializing in corrective facials, brow artistry and clinical peels.",
+      "Experience transformative beauty services at Atlanta's premier beauty studio. Specializing in luxury facials, brow artistry, clinical peels, and permanent makeup.",
     url: '/',
     siteName: 'Splendid Beauty Bar & Co.',
     images: [
       {
-        url: '/images/og-main.jpg',
+        url: '/images/splendid-logo.png',
         width: 1200,
         height: 630,
-        alt: 'Splendid Beauty Bar & Co. Studio',
+        alt: 'Splendid Beauty Bar & Co. - Premium Beauty Services in Atlanta',
       },
     ],
     locale: 'en_US',
@@ -54,11 +55,18 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title:
-      'Splendid Beauty Bar & Co. | Facials • Brows • Peels | Atlanta, Georgia',
+      'Splendid Beauty Bar & Co. | Premium Beauty Services | Atlanta',
     description:
-      "Atlanta's boutique beauty studio specializing in corrective facials, brow artistry and clinical peels.",
-    images: ['/images/og-main.jpg'],
+      "Transform your beauty routine with Atlanta's premier beauty studio. Specializing in luxury facials, brow artistry, clinical peels, eyelash enhancements, and permanent makeup.",
+    images: ['/images/splendid-logo.png'],
+    creator: '@splendidbeautybar',
+    site: '@splendidbeautybar',
   },
+  verification: {
+    google: 'verification_token_placeholder',
+  },
+  category: 'Beauty Services',
+  applicationName: 'Splendid Beauty Bar & Co.',
   generator: 'Next.js',
 }
 
@@ -82,6 +90,13 @@ export default function RootLayout({
 
         {/* Viewport for responsiveness */}
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        
+        {/* Favicon and other icons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://splendidbeautybar.com" />
       </head>
 
       <body className={`${inter.className} ${forum.variable} antialiased min-h-screen flex flex-col`}>

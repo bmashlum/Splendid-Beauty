@@ -22,6 +22,10 @@ import Navbar from '@/components/navbar'
 import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
 
+// --- Schema Imports ---
+import dynamic from 'next/dynamic'
+const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { ssr: false })
+
 // Create a new component for the iframe modal
 const GenericIframeModal = ({ isOpen, onClose, iframeUrl, title = 'Content' }: { isOpen: boolean; onClose: () => void; iframeUrl: string; title?: string }) => {
   return (
@@ -135,6 +139,33 @@ const VideoModal = dynamic(() => import('@/components/VideoModal'), {
 const GoogleMaps = dynamic(() => import('@/components/google-maps'), {
   loading: () => <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-gray-500">Loading Map...</div>,
 });
+
+// --- Helper Functions ---
+// Function to get detailed alt text for images based on section ID
+const getAltText = (id: string): string => {
+  const altTexts: Record<string, string> = {
+    'hero': 'Splendid Beauty Bar & Co. - Luxury beauty salon in Atlanta showcasing premium beauty services',
+    'about-us': 'About Splendid Beauty Bar & Co. - Our beauty salon story and mission',
+    'award-1': 'Award-winning beauty services at Splendid Beauty Bar & Co.',
+    'award-2': 'Recognition and excellence in beauty treatments at Splendid Beauty Bar',
+    'we-do-that': 'Comprehensive beauty services offered at Splendid Beauty Bar & Co.',
+    'book-now': 'Book your beauty appointment at Splendid Beauty Bar & Co. in Atlanta',
+    'true-beauty': 'True beauty transformation services at Splendid Beauty Bar',
+    'portfolio': 'Portfolio of beauty transformations and client results at Splendid Beauty',
+    'shop': 'Premium beauty products available at Splendid Beauty Bar & Co.',
+    'hair-studio': 'Professional hair studio services at Splendid Beauty Bar',
+    'academy': 'Beauty education and training at Splendid Beauty Academy',
+    'policies': 'Client policies and procedures at Splendid Beauty Bar & Co.',
+    'connect': 'Connect with Splendid Beauty Bar - Contact information and location',
+    'financing': 'Financing options available for beauty services at Splendid Beauty',
+    'perm-makeup': 'Permanent makeup services including microblading at Splendid Beauty Bar',
+    'perm-medical': 'Medical-grade permanent makeup treatments at Splendid Beauty Bar',
+    'facial': 'Professional facial treatments and skin care at Splendid Beauty Bar',
+    'eyelash': 'Eyelash extensions and enhancements at Splendid Beauty Bar & Co.'
+  };
+  
+  return altTexts[id] || `${id} beauty service at Splendid Beauty Bar`;
+};
 
 // --- Data & Types ---
 type SectionData = {
@@ -430,7 +461,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           <AnimatedImage
             imagePath={`/images/${sectionConfig.imageName}${sectionConfig.imageName.endsWith('.webp') ? '' : '.png'}`}
             videoPath={`/images/${sectionConfig.videoName}.mp4`}
-            alt={`${id} section background`}
+            alt={getAltText(id)}
             sizes={imageSizes}
             objectPosition={objectPosition}
             priority={isHero || priorityImages.includes(id)}
@@ -439,7 +470,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
         ) : staticImageSrc ? (
           <Image
             src={staticImageSrc}
-            alt={`${id} section background`}
+            alt={getAltText(id)}
             fill
             className={cn(
               "w-full h-full object-cover",
@@ -767,6 +798,8 @@ export default function Home() {
         An error occurred. Please refresh the page.
       </div>
     }>
+      {/* Add structured data for SEO */}
+      <SEOSchema />
       {/* Add global CSS for xl-object-contain */}
       <Head>
         <link 
