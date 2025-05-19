@@ -162,7 +162,7 @@ const getAltText = (id: string): string => {
     'facial': 'Professional facial treatments and skin care at Splendid Beauty Bar',
     'eyelash': 'Eyelash extensions and enhancements at Splendid Beauty Bar & Co.'
   };
-  
+
   return altTexts[id] || `${id} beauty service at Splendid Beauty Bar`;
 };
 
@@ -237,7 +237,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isConnectFabExpanded, setIsConnectFabExpanded] = useState(false);
-  
+
   // Check if this is one of the sections that needs mobile buttons
   const needsMobileButton = ['perm-makeup', 'perm-medical', 'facial', 'eyelash'].includes(id);
 
@@ -287,16 +287,16 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
     'relative w-full overflow-hidden', // Common base classes
     isHero
       ? [
-          'mt-28 sm:mt-20 md:mt-20 lg:mt-6', // Even more top margin on mobile
-          'aspect-[16/10] sm:aspect-video md:h-[70vh] xl:h-screen xl:w-full', // Different aspect ratio on mobile
-          'my-0 sm:my-0 md:my-0', // No additional vertical margins for hero
-          'pt-12 sm:pt-0' // Additional padding at the top for mobile
-        ]
+        'mt-28 sm:mt-20 md:mt-20 lg:mt-6', // Even more top margin on mobile
+        'aspect-[16/10] sm:aspect-video md:h-[70vh] xl:h-screen xl:w-full', // Different aspect ratio on mobile
+        'my-0 sm:my-0 md:my-0', // No additional vertical margins for hero
+        'pt-12 sm:pt-0' // Additional padding at the top for mobile
+      ]
       : [ // Other sections:
-          'my-1 sm:my-4 lg:my-6', // Margins for non-hero sections
-          'aspect-video xl:h-[95vh]', // Handles height across breakpoints
-          'xl:w-[95%] xl:mx-auto xl:rounded-lg xl:shadow-lg' // XL specific width, centering, and styling
-        ]
+        'my-1 sm:my-4 lg:my-6', // Margins for non-hero sections
+        'aspect-video xl:h-[95vh]', // Handles height across breakpoints
+        'xl:w-[95%] xl:mx-auto xl:rounded-lg xl:shadow-lg' // XL specific width, centering, and styling
+      ]
   );
 
   // Sizes prop: 100vw up to XL, then 80vw
@@ -488,8 +488,8 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
             loading={isHero || section.priority || priorityImages.includes(id) ? 'eager' : 'lazy'}
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmM2Y0ZjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlNWU3ZWIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2cpIi8+PC9zdmc+"
-            style={{ 
-              transform: 'translateZ(0)', 
+            style={{
+              transform: 'translateZ(0)',
               backfaceVisibility: 'hidden',
               willChange: isHero ? 'transform' : 'auto'
             }}
@@ -497,7 +497,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
         ) : (
           <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
         )}
-        
+
         {/* Mobile Button for special sections - Removed as requested */}
       </div>
 
@@ -563,55 +563,55 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           <div className="absolute inset-0 z-50 pointer-events-auto xl:hidden">
             {/* Book Appointment Button - Responsive sizing based on viewport */}
             <div className="absolute left-1/4 top-[64%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
-              <button 
-                onClick={onBookingClick} 
+              <button
+                onClick={onBookingClick}
                 className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
-                style={{ 
-                  width: "calc(40vw)", 
+                style={{
+                  width: "calc(40vw)",
                   height: "calc(8vw)",
                   maxWidth: "292px",
                   maxHeight: "57px",
                   minWidth: "120px",
                   minHeight: "30px"
-                }} 
+                }}
                 aria-label="Book an appointment"
               >
                 Book Appointment
               </button>
             </div>
-            
+
             {/* Chat With A Professional Button - Responsive sizing based on viewport */}
             <div className="absolute left-3/4 top-[64%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
-              <button 
-                onClick={onContactClick} 
+              <button
+                onClick={onContactClick}
                 className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
-                style={{ 
-                  width: "calc(40vw)", 
+                style={{
+                  width: "calc(40vw)",
                   height: "calc(8vw)",
                   maxWidth: "292px",
                   maxHeight: "57px",
                   minWidth: "120px",
                   minHeight: "30px"
-                }} 
+                }}
                 aria-label="Contact us"
               >
                 Chat With Professional
               </button>
             </div>
-            
+
             {/* Gift Certificate Button - Responsive sizing based on viewport */}
             <div className="absolute left-1/2 top-[79%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
-              <button 
-                onClick={onGiftCardClick} 
+              <button
+                onClick={onGiftCardClick}
                 className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
-                style={{ 
-                  width: "calc(40vw)", 
+                style={{
+                  width: "calc(40vw)",
                   height: "calc(8vw)",
                   maxWidth: "292px",
                   maxHeight: "57px",
                   minWidth: "120px",
                   minHeight: "30px"
-                }} 
+                }}
                 aria-label="Buy gift cards"
               >
                 Gift Certificate
@@ -632,14 +632,14 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           >
             Contact Us
           </button>
-          
+
           {/* Mobile button at same position with responsive sizing */}
           <button
             onClick={onContactClick}
             className="xl:hidden absolute left-[78%] top-[83%] transform -translate-y-1/2 -translate-x-1/2 z-50 bg-transparent text-transparent rounded-full hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer pointer-events-auto"
             aria-label="Contact us for hair studio"
-            style={{ 
-              width: "calc(40vw)", 
+            style={{
+              width: "calc(40vw)",
               height: "calc(8vw)",
               maxWidth: "292px",
               maxHeight: "57px",
@@ -665,15 +665,15 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
               Apply for Financing
             </button>
           </div>
-          
+
           {/* Mobile button positioned exactly like the desktop version for Financing - smaller and lower */}
           <div className="absolute inset-0 xl:hidden">
             <div className="absolute bottom-[17%] left-1/2 transform translate-x-[-50%] z-50">
               <button
                 onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
                 className="bg-transparent text-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
-                style={{ 
-                  width: "calc(40vw)", 
+                style={{
+                  width: "calc(40vw)",
                   height: "calc(8vw)",
                   maxWidth: "250px",
                   maxHeight: "50px",
@@ -726,11 +726,11 @@ export default function Home() {
   useEffect(() => {
     const loadPriorityStaticImages = async () => {
       setImagesLoading(true);
-      
+
       // First, load only priority images (hero + above fold)
       const priorityImportEntries = Object.entries(staticImageImports)
         .filter(([id]) => id === 'hero' || priorityImages.includes(id));
-        
+
       const priorityImagePromises = priorityImportEntries.map(async ([id, importFn]) => {
         try {
           const module = await importFn();
@@ -740,7 +740,7 @@ export default function Home() {
           return { id, image: null };
         }
       });
-      
+
       // Load hero and priority images first
       const settledPriorityImages = await Promise.all(priorityImagePromises);
       const newLoadedImages: Record<string, StaticImageData | null> = {};
@@ -749,16 +749,16 @@ export default function Home() {
           newLoadedImages[result.id] = result.image;
         }
       });
-      
+
       // Update state with just priority images to start rendering quickly
       setLoadedImages(newLoadedImages);
       setImagesLoading(false);
-      
+
       // Then load remaining images after a small delay
       setTimeout(() => {
         const remainingImportEntries = Object.entries(staticImageImports)
           .filter(([id]) => id !== 'hero' && !priorityImages.includes(id));
-          
+
         const remainingImagePromises = remainingImportEntries.map(async ([id, importFn]) => {
           try {
             const module = await importFn();
@@ -768,7 +768,7 @@ export default function Home() {
             return { id, image: null };
           }
         });
-        
+
         // Process remaining images in batches to avoid blocking the main thread
         Promise.all(remainingImagePromises).then(settledImages => {
           setLoadedImages(prevImages => {
@@ -783,7 +783,7 @@ export default function Home() {
         });
       }, 1000); // Delay non-priority images by 1 second
     };
-    
+
     loadPriorityStaticImages();
   }, [priorityImages]);
 
@@ -823,10 +823,10 @@ export default function Home() {
   // Avoid loading fallback to improve FCP/LCP
   if (imagesLoading) {
     return (
-      <div className="min-h-screen bg-[#f9f7e8]" 
-        style={{ 
+      <div className="min-h-screen bg-[#f9f7e8]"
+        style={{
           backgroundImage: "url('/images/elegant-gold-background.webp')",
-          backgroundColor: "#f9f7e8", 
+          backgroundColor: "#f9f7e8",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}>
@@ -836,7 +836,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, rotate: 360 }}
             transition={{ opacity: { duration: 0.3 }, rotate: { duration: 1, repeat: Infinity, ease: "linear" } }}
-            className="h-12 w-12 border-3 border-t-[#063f48] border-r-[#063f48]/30 border-b-[#063f48]/30 border-l-[#063f48]/30 rounded-full"
+            className="h-12 w-12 border-4 border-t-[#063f48] border-r-[#063f48]/30 border-b-[#063f48]/30 border-l-[#063f48]/30 rounded-full"
           />
         </main>
       </div>
@@ -854,28 +854,28 @@ export default function Home() {
       {/* Add global CSS for xl-object-contain */}
       <Head>
         {/* Preload critical background and LCP hero image */}
-        <link 
-          rel="preload" 
-          href="/images/elegant-gold-background.webp" 
-          as="image" 
+        <link
+          rel="preload"
+          href="/images/elegant-gold-background.webp"
+          as="image"
           type="image/webp"
-          fetchpriority="high"
+          fetchPriority="high"
         />
-        <link 
-          rel="preload" 
-          href="/images/Home.webp" 
-          as="image" 
+        <link
+          rel="preload"
+          href="/images/Home.webp"
+          as="image"
           type="image/webp"
-          fetchpriority="high"
+          fetchPriority="high"
         />
-        
+
         {/* Preconnect to external domains */}
-        <link rel="preconnect" href="https://boulevard.io" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://dashboard.boulevard.io" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://blvd.me" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.youtube.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
-        
+        <link rel="preconnect" href="https://boulevard.io" crossOrigin="" />
+        <link rel="preconnect" href="https://dashboard.boulevard.io" crossOrigin="" />
+        <link rel="preconnect" href="https://blvd.me" crossOrigin="" />
+        <link rel="preconnect" href="https://www.youtube.com" crossOrigin="" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="" />
+
         {/* XL object-contain style */}
         <style>{`
           @media (min-width: 1280px) {
@@ -885,9 +885,9 @@ export default function Home() {
           }
         `}</style>
       </Head>
-      <div 
-        className="min-h-screen bg-[#f9f7e8]" 
-        style={{ 
+      <div
+        className="min-h-screen bg-[#f9f7e8]"
+        style={{
           backgroundImage: "url('/images/elegant-gold-background.webp')",
           backgroundColor: "#f9f7e8", /* Fallback color */
           backgroundSize: "cover",
@@ -906,7 +906,7 @@ export default function Home() {
             {heroSectionData && (
               <Section
                 key={heroSectionData.id}
-                section={{...heroSectionData, priority: true}}
+                section={{ ...heroSectionData, priority: true }}
                 onVideoClick={handleVideoClick}
                 onSocialClick={handleSocialClick}
                 loadedImages={loadedImages}
