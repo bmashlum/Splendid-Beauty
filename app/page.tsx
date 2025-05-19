@@ -667,6 +667,12 @@ export default function Home() {
     }>
       {/* Add global CSS for xl-object-contain */}
       <Head>
+        <link 
+          rel="preload" 
+          href="/images/elegant-gold-background.webp" 
+          as="image" 
+          type="image/webp"
+        />
         <style>{`
           @media (min-width: 1280px) {
             .xl-object-contain {
@@ -675,7 +681,14 @@ export default function Home() {
           }
         `}</style>
       </Head>
-      <div className="min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-fixed bg-center">
+      <div 
+        className="min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-center" 
+        style={{ 
+          backgroundImage: "url('/images/elegant-gold-background.webp')",
+          backgroundColor: "#f9f7e8", /* Fallback color */
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}>
         <Navbar scrolled={scrolled} />
         <main
           ref={mainRef}
