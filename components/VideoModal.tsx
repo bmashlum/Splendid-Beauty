@@ -1,6 +1,6 @@
 // app/components/VideoModal.tsx
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react'; // Import Fragment
+import { Fragment, memo, useEffect, useCallback } from 'react';
 
 interface VideoModalProps {
     isOpen: boolean;
@@ -8,7 +8,25 @@ interface VideoModalProps {
     videoId: string;
 }
 
-export default function VideoModal({ isOpen, onClose, videoId }: VideoModalProps) {
+const VideoModal = memo(function VideoModal({ isOpen, onClose, videoId }: VideoModalProps) {
+    // Handle escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose();
+            }
+        };
+        
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, onClose]);
+    
+    // Handle backdrop click
+    const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    }, [onClose]);
     return (
         <Transition appear show={isOpen} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -26,7 +44,7 @@ export default function VideoModal({ isOpen, onClose, videoId }: VideoModalProps
                 </Transition.Child>
 
                 {/* Modal Content */}
-                <div className="fixed inset-0 flex items-center justify-center p-4">
+                <div className="fixed inset-0 flex items-center justify-center p-4" onClick={handleBackdropClick}>
                     <Transition.Child
                         as={Fragment}
                         enter="ease-out duration-300"
@@ -47,7 +65,7 @@ export default function VideoModal({ isOpen, onClose, videoId }: VideoModalProps
                                 aria-label="Close video player" // Accessibility label
                             >
                                 {/* Simple text or an X icon */}
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -56,11 +74,12 @@ export default function VideoModal({ isOpen, onClose, videoId }: VideoModalProps
                                 <iframe
                                     width="100%"
                                     height="100%"
-                                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1`} // Added autoplay
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     allowFullScreen
                                     className="rounded-lg"
-                                    title="YouTube video player" // Accessibility title
+                                    title={`Splendid Beauty Bar video presentation`}
+                                    loading="lazy"
                                 />
                             </div>
                         </Dialog.Panel>
@@ -69,4 +88,8 @@ export default function VideoModal({ isOpen, onClose, videoId }: VideoModalProps
             </Dialog>
         </Transition>
     );
-}
+});
+
+VideoModal.displayName = 'VideoModal';
+
+export default VideoModal;

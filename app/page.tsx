@@ -7,7 +7,8 @@ import React, {
   useEffect,
   useCallback,
   type ReactNode,
-  useMemo
+  useMemo,
+  lazy
 } from 'react'
 import Image, { type StaticImageData } from 'next/image'
 import dynamic from 'next/dynamic'
@@ -23,10 +24,24 @@ import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
 
 // --- Schema Imports ---
-const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { ssr: false })
+const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { 
+  ssr: false,
+  loading: () => null 
+})
 
-// Create a new component for the iframe modal
-const GenericIframeModal = ({ isOpen, onClose, iframeUrl, title = 'Content' }: { isOpen: boolean; onClose: () => void; iframeUrl: string; title?: string }) => {
+// --- Types ---
+type ButtonPosition = { x: number; y: number };
+type SocialLink = { href: string; label: string; IconSvg: ReactNode };
+
+// --- Modal Components ---
+interface GenericIframeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  iframeUrl: string;
+  title?: string;
+}
+
+const GenericIframeModal = React.memo(({ isOpen, onClose, iframeUrl, title = 'Content' }: GenericIframeModalProps) => {
   return (
     <Dialog as="div" className="relative z-50" open={isOpen} onClose={onClose}>
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
@@ -59,7 +74,8 @@ const GenericIframeModal = ({ isOpen, onClose, iframeUrl, title = 'Content' }: {
       </div>
     </Dialog>
   );
-};
+});
+GenericIframeModal.displayName = 'GenericIframeModal';
 
 
 // --- Image Imports (ensure paths are correct) ---
@@ -85,32 +101,48 @@ const staticImageImports: Record<string, () => Promise<{ default: StaticImageDat
 
 // Add image quality configuration
 const imageQualityConfig: Record<string, number> = {
-  'about': 100, 'award-1': 100, 'award-2': 100, 'we-do-that': 100, 'book-now': 100,
-  'true-beauty': 100, 'portfolio': 100, 'shop': 100, 'hair-studio': 100, 'academy': 100,
-  'policies': 100, 'connect': 100, 'financing': 100, 'perm-makeup': 100,
-  'perm-medical': 100, 'facial': 100, 'eyelash': 100
+  'about': 95, 'award-1': 95, 'award-2': 95, 'we-do-that': 95, 'book-now': 95,
+  'true-beauty': 90, 'portfolio': 90, 'shop': 90, 'hair-studio': 90, 'academy': 90,
+  'policies': 85, 'connect': 95, 'financing': 85, 'perm-makeup': 90,
+  'perm-medical': 90, 'facial': 90, 'eyelash': 90
 };
 
 // Add priority configuration for above-the-fold images
-const priorityImages = ['about', 'award-1', 'award-2', 'we-do-that', 'book-now'];
+const priorityImages = ['about', 'award-1', 'award-2'];
 
 // --- Configuration Constants ---
 const FACEBOOK_PAGE_URL = "https://www.facebook.com/splendidbeautybarandco";
-const INSTAGRAM_PAGE_URL = "https://www.instagram.com/splendidbeautybar/";
+const INSTAGRAM_PAGE_URL = "https://www.instagramotion.com/splendidbeautybar/";
 const BOOKING_URL = "https://dashboard.boulevard.io/booking/businesses/18e96cd8-7ca6-4e7e-8282-2055f45efbc4/widget#/visit-type";
 const YOUTUBE_VIDEO_ID = "DfVi23EdsxM";
 
 // --- Error Boundary ---
-class ErrorBoundary extends React.Component<
-  { children: ReactNode; fallback?: ReactNode },
-  { hasError: boolean; error: Error | null }
-> {
-  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, error: null }
   }
-  static getDerivedStateFromError(error: Error) { return { hasError: true, error } }
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) { console.error('ErrorBoundary caught an error:', error, errorInfo); }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('ErrorBoundary caught an error:', error, errorInfo);
+    }
+  }
+
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
@@ -119,9 +151,20 @@ class ErrorBoundary extends React.Component<
             <h2 className="mb-4 text-2xl font-bold text-red-700">Oops! Something went wrong.</h2>
             <p className="mb-4 text-gray-700">Please try refreshing the page.</p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="mb-4 text-left text-sm"><summary>Details</summary><pre className="mt-2 whitespace-pre-wrap bg-gray-100 p-2 text-xs">{this.state.error.stack}</pre></details>
+              <details className="mb-4 text-left text-sm">
+                <summary className="cursor-pointer">Details</summary>
+                <pre className="mt-2 whitespace-pre-wrap bg-gray-100 p-2 text-xs">
+                  {this.state.error.stack}
+                </pre>
+              </details>
             )}
-            <button onClick={() => window.location.reload()} className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700">Reload</button>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition-colors"
+              type="button"
+            >
+              Reload
+            </button>
           </div>
         </div>
       );
@@ -130,17 +173,26 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-// --- Dynamic Imports ---
+// --- Dynamic Imports with error handling ---
 const VideoModal = dynamic(() => import('@/components/VideoModal'), {
-  loading: () => <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 text-white backdrop-blur-sm">Loading Video Player...</div>,
+  loading: () => (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 text-white backdrop-blur-sm">
+      <div className="animate-pulse">Loading Video Player...</div>
+    </div>
+  ),
+  ssr: false
 });
 
 const GoogleMaps = dynamic(() => import('@/components/google-maps'), {
-  loading: () => <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-gray-500">Loading Map...</div>,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-gray-500">
+      <div className="animate-pulse">Loading Map...</div>
+    </div>
+  ),
+  ssr: false
 });
 
 // --- Helper Functions ---
-// Function to get detailed alt text for images based on section ID
 const getAltText = (id: string): string => {
   const altTexts: Record<string, string> = {
     'hero': 'Splendid Beauty Bar & Co. - Luxury beauty salon in Atlanta showcasing premium beauty services',
@@ -241,12 +293,12 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   // Check if this is one of the sections that needs mobile buttons
   const needsMobileButton = ['perm-makeup', 'perm-medical', 'facial', 'eyelash'].includes(id);
 
-  // WARNING: These coordinates likely only work correctly on XL screens due to fixed height/width there.
-  const [buttonPositions] = useState({
+  // Button positions optimized for XL screens
+  const buttonPositions = useMemo<Record<string, ButtonPosition>>(() => ({
     bookAppointment: { x: 647, y: 640 },
     chatProfessional: { x: 1003, y: 640 },
     giftCertificate: { x: 819, y: 790 }
-  });
+  }), []);
 
   useEffect(() => {
     setIsClient(true);
@@ -255,18 +307,25 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   useEffect(() => {
     if (id === 'shop' && sectionRef.current) {
       const videoElement = sectionRef.current.querySelector('video');
-      if (videoElement) {
-        const handleVideoEnd = () => setVideoCompleted(true);
-        const handlePlay = () => setVideoCompleted(false);
-        videoElement.addEventListener('ended', handleVideoEnd);
-        videoElement.addEventListener('play', handlePlay);
-        if (!videoElement.paused && !videoElement.ended) setVideoCompleted(false);
-        else if (videoElement.ended) setVideoCompleted(true);
-        return () => {
-          videoElement.removeEventListener('ended', handleVideoEnd);
-          videoElement.removeEventListener('play', handlePlay);
-        }
+      if (!videoElement) return;
+
+      const handleVideoEnd = () => setVideoCompleted(true);
+      const handlePlay = () => setVideoCompleted(false);
+      
+      videoElement.addEventListener('ended', handleVideoEnd);
+      videoElement.addEventListener('play', handlePlay);
+      
+      // Set initial state
+      if (!videoElement.paused && !videoElement.ended) {
+        setVideoCompleted(false);
+      } else if (videoElement.ended) {
+        setVideoCompleted(true);
       }
+      
+      return () => {
+        videoElement.removeEventListener('ended', handleVideoEnd);
+        videoElement.removeEventListener('play', handlePlay);
+      };
     }
   }, [id, isSectionInViewForPlayback]);
 
@@ -351,7 +410,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           {isSectionInViewForAnimation && (
             <button
               type="button"
-              className="absolute bottom-4 right-4 xl:hidden flex items-center justify-center w-14 h-14 rounded-full bg-[#063f48] shadow-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              className="absolute bottom-4 right-4 xl:hidden flex items-center justify-center w-14 h-14 rounded-full bg-[#063f48] shadow-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transform transition-transform hover:scale-105 active:scale-95"
               aria-label="Open contact and map"
               onClick={() => setIsConnectFabExpanded(true)}
             >
@@ -654,7 +713,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           {/* Desktop button with fixed positioning (original) */}
           <div className="absolute inset-0 flex items-end justify-center pb-32 pointer-events-none hidden xl:flex">
             <button
-              onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
+              onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank', 'noopener,noreferrer')}
               className="px-8 py-4 bg-transparent text-transparent text-lg font-semibold rounded-full hover:bg-transparent/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] pointer-events-auto translate-x-72 opacity-0"
               aria-label="Apply for Financing"
             >
@@ -666,7 +725,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           <div className="absolute inset-0 xl:hidden">
             <div className="absolute bottom-[17%] left-1/2 transform translate-x-[-50%] z-50">
               <button
-                onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank')}
+                onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank', 'noopener,noreferrer')}
                 className="bg-transparent text-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
                 style={{ 
                   width: "calc(40vw)", 
@@ -797,22 +856,25 @@ export default function Home() {
     }>
       {/* Add structured data for SEO */}
       <SEOSchema />
-      {/* Add global CSS for xl-object-contain */}
-      <Head>
-        <link 
-          rel="preload" 
-          href="/images/elegant-gold-background.webp" 
-          as="image" 
-          type="image/webp"
-        />
-        <style>{`
-          @media (min-width: 1280px) {
-            .xl-object-contain {
-              object-fit: contain !important;
-            }
-          }
-        `}</style>
-      </Head>
+        {/* Add global CSS for xl-object-contain */}
+        <Head>
+          <link 
+            rel="preload" 
+            href="/images/elegant-gold-background.webp" 
+            as="image" 
+            type="image/webp"
+            crossOrigin="anonymous"
+          />
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              @media (min-width: 1280px) {
+                .xl-object-contain {
+                  object-fit: contain !important;
+                }
+              }
+            `
+          }} />
+        </Head>
       <div 
         className="min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-center" 
         style={{ 

@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import Head from 'next/head';
 
 interface AnimatedImageProps {
     imagePath: string;
@@ -14,7 +13,7 @@ interface AnimatedImageProps {
     isInView?: boolean;
 }
 
-export default function AnimatedImage({
+const AnimatedImage = memo(function AnimatedImage({
     imagePath,
     videoPath,
     alt,
@@ -27,7 +26,7 @@ export default function AnimatedImage({
     // Determine if we should use object-contain on XL screens
     const shouldUseContainXL = objectPosition.includes('xl:object-contain');
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+    const [, setIsVideoLoaded] = useState(false);
     const [hasVideoEnded, setHasVideoEnded] = useState(false);
     const [videoError, setVideoError] = useState(false);
     const [isVideoSupported, setIsVideoSupported] = useState(true);
@@ -40,11 +39,11 @@ export default function AnimatedImage({
             const video = document.createElement('video');
             const isVideoTypeSupported = !!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4'));
             
-            // Check if device is iOS (iPhone, iPad)
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+            // Check for low power mode or reduced motion preference
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             
-            // Set support based on both video type support and not being iOS (since iOS has autoplay limitations)
-            setIsVideoSupported(isVideoTypeSupported);
+            // Set support based on video type support and user preferences
+            setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion);
         }
     }, []);
 
@@ -95,17 +94,7 @@ export default function AnimatedImage({
 
     return (
         <div className="relative w-full h-full overflow-hidden">
-            {shouldUseContainXL && (
-                <Head>
-                    <style>{`
-                        @media (min-width: 1280px) {
-                            .xl-object-contain {
-                                object-fit: contain !important;
-                            }
-                        }
-                    `}</style>
-                </Head>
-            )}
+            {/* Note: xl-object-contain class is defined in global styles */}
             {/* Static Image Layer */}
             <div className="absolute inset-0">
                 <Image
@@ -125,13 +114,10 @@ export default function AnimatedImage({
                     fill
                     priority={priority}
                     sizes={sizes}
-                    quality={100}
-                    unoptimized={true}
+                    quality={95}
                     loading={priority ? "eager" : "lazy"}
                     placeholder="blur"
-                    blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                        `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f3f4f6"/></svg>`
-                    ).toString('base64')}`}
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmM2Y0ZjYiLz48L3N2Zz4="
                     style={{
                         transform: 'translateZ(0)',
                         backfaceVisibility: 'hidden',
@@ -158,7 +144,7 @@ export default function AnimatedImage({
                     muted
                     autoPlay
                     loop={false}
-                    preload="auto"
+                    preload="metadata"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
                     transition={{ duration: 0.5 }}
@@ -191,6 +177,7 @@ export default function AnimatedImage({
                         setIsVideoFading(false);
                     }}
                     src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
+                    crossOrigin="anonymous"
                     poster={imagePath} // Use the static image as a fallback poster
                 >
                     Your browser does not support the video tag.
@@ -198,4 +185,8 @@ export default function AnimatedImage({
             )}
         </div>
     );
-}
+});
+
+AnimatedImage.displayName = 'AnimatedImage';
+
+export default AnimatedImage;

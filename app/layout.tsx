@@ -1,15 +1,23 @@
 // app/layout.tsx
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Forum } from 'next/font/google'
+import Script from 'next/script'
 import '@/app/globals.css'
 
 import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true
+})
+
 const forum = Forum({
   weight: '400',
   subsets: ['latin'],
-  variable: '--font-forum'
+  variable: '--font-forum',
+  display: 'swap',
+  preload: true
 })
 
 /* -------------------------------------------------------------------------- */
@@ -21,7 +29,22 @@ export const metadata: Metadata = {
     'Splendid Beauty Bar & Co. | Premium Skincare & Beauty Services | Atlanta',
   description:
     "Atlanta's premier beauty studio offering luxury facials, expert brow artistry, clinical peels, eyelash enhancements, and permanent makeup services. Book your beauty transformation today.",
-  keywords: "Atlanta beauty studio, facial spa, brow specialists, clinical peels, eyelash extensions, permanent makeup, beauty services, Atlanta skincare, luxury beauty treatments",
+  keywords: [
+    'Atlanta beauty studio',
+    'facial spa',
+    'brow specialists',
+    'clinical peels',
+    'eyelash extensions', 
+    'permanent makeup',
+    'beauty services',
+    'Atlanta skincare',
+    'luxury beauty treatments',
+    'microblading Atlanta',
+    'beauty bar Atlanta'
+  ],
+  authors: [{ name: 'Splendid Beauty Bar & Co.' }],
+  creator: 'Splendid Beauty Bar & Co.',
+  publisher: 'Splendid Beauty Bar & Co.',
   alternates: { canonical: '/' },
   openGraph: {
     title:
@@ -63,8 +86,26 @@ export const metadata: Metadata = {
     site: '@splendidbeautybar',
   },
   verification: {
-    google: 'verification_token_placeholder',
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || '',
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || '',
+    other: {
+      'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION || ''
+    }
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' }
+    ],
+    other: [
+      { rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#063f48' }
+    ]
+  },
+  manifest: '/site.webmanifest',
   category: 'Beauty Services',
   applicationName: 'Splendid Beauty Bar & Co.',
   generator: 'Next.js',
@@ -72,34 +113,51 @@ export const metadata: Metadata = {
 
 /* -------------------------------------------------------------------------- */
 
-export default function RootLayout({
-  children,
-}: {
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#063f48' }
+  ]
+}
+
+interface RootLayoutProps {
   children: React.ReactNode
-}) {
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html 
+      lang="en" 
+      suppressHydrationWarning
+      className={`${inter.className} ${forum.variable}`}
+    >
       <head>
-        {/* 🚀 Pre-load the only heavyweight raster so it starts downloading during HTML parse */}
+        {/* Critical resource preloads */}
         <link
           rel="preload"
           as="image"
           href="/images/elegant-gold-background.webp"
           fetchPriority="high"
+          type="image/webp"
         />
-
-        {/* Viewport for responsiveness */}
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
         
-        {/* Favicon and other icons */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* DNS Prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Canonical URL */}
-        <link rel="canonical" href="https://splendidbeautybar.com" />
+        {/* SEO and Social Media Tags */}
+        <meta name="author" content="Splendid Beauty Bar & Co." />
+        <meta name="geo.region" content="US-GA" />
+        <meta name="geo.placename" content="Atlanta" />
+        <meta name="geo.position" content="33.7490;-84.3880" />
+        <meta name="ICBM" content="33.7490, -84.3880" />
       </head>
 
-      <body className={`${inter.className} ${forum.variable} antialiased min-h-screen flex flex-col`}>
+      <body className="antialiased min-h-screen flex flex-col bg-[#f9f7e8]">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -111,6 +169,56 @@ export default function RootLayout({
             {children}
           </main>
         </ThemeProvider>
+        
+        {/* Analytics Scripts - Load after page content */}
+        <Script 
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || ''}');
+            `
+          }}
+        />
+        
+        {/* Schema.org Organization Data */}
+        <Script
+          id="schema-org"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              '@id': 'https://splendidbeautybar.com/#organization',
+              name: 'Splendid Beauty Bar & Co.',
+              url: 'https://splendidbeautybar.com',
+              logo: 'https://splendidbeautybar.com/images/splendid-logo.png',
+              image: 'https://splendidbeautybar.com/images/splendid-logo.png',
+              description: 'Atlanta\'s premier beauty studio offering luxury facials, expert brow artistry, clinical peels, eyelash enhancements, and permanent makeup services.',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Atlanta',
+                addressRegion: 'GA',
+                addressCountry: 'US'
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: 33.7490,
+                longitude: -84.3880
+              },
+              openingHours: 'Mo-Su 09:00-19:00',
+              priceRange: '$$',
+              telephone: '+1-404-xxx-xxxx',
+              sameAs: [
+                'https://www.facebook.com/splendidbeautybarandco',
+                'https://www.instagram.com/splendidbeautybar/'
+              ]
+            })
+          }}
+        />
       </body>
     </html>
   )

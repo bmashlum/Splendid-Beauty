@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises'; // Using fs.promises for async operations
+import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { z } from 'zod'; // For input validation
+import { z } from 'zod';
+import { jwtVerify } from 'jose';
+
+// Auth middleware
+async function verifyAuth(request: NextRequest): Promise<boolean> {
+  try {
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token || !process.env.JWT_SECRET) return false;
+    
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Define the data directory and file paths
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -50,7 +65,12 @@ export type Event = z.infer<typeof eventSchema>;
 // In-memory cache for events
 let eventsCache: Event[] | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION_MS = process.env.NODE_ENV === 'development' ? 0 : 5000; // 5 seconds cache in prod, 0 in dev
+const CACHE_DURATION_MS = process.env.NODE_ENV === 'development' ? 0 : 30000; // 30 seconds cache in prod, 0 in dev
+
+// File size and security limits
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+const MAX_IMAGE_DIMENSIONS = 5000;
 
 async function getEvents(forceRefresh: boolean = false): Promise<Event[]> {
   const now = Date.now();
@@ -91,23 +111,33 @@ function generateSafeFileNameBase(title: string): string {
 }
 
 async function processAndSaveImage(imageBuffer: Buffer, fileNameBase: string): Promise<string> {
-  const uniqueFileName = `${fileNameBase}-${Date.now()}.webp`; // Use timestamp and webp
+  const uniqueFileName = `${fileNameBase}-${Date.now()}.webp`;
   const filePath = path.join(IMAGES_DIR, uniqueFileName);
 
   try {
-    // Resize to fit within OPTIMAL_WIDTH x OPTIMAL_HEIGHT, maintaining aspect ratio, then convert to WebP
+    // Validate image before processing
+    const metadata = await sharp(imageBuffer).metadata();
+    
+    if (!metadata.width || !metadata.height || 
+        metadata.width > MAX_IMAGE_DIMENSIONS || 
+        metadata.height > MAX_IMAGE_DIMENSIONS) {
+      throw new Error('Invalid image dimensions');
+    }
+    
+    // Resize to fit within OPTIMAL_WIDTH x OPTIMAL_HEIGHT, maintaining aspect ratio
     await sharp(imageBuffer)
       .resize({
         width: OPTIMAL_WIDTH,
         height: OPTIMAL_HEIGHT,
-        fit: 'inside', // Ensures the image fits within dimensions without cropping, maintains aspect ratio
+        fit: 'inside',
         withoutEnlargement: true
       })
       .webp({ quality: 85 })
       .toFile(filePath);
+      
     return `/uploads/events/${uniqueFileName}`;
   } catch (error) {
-    console.error('Error processing event image with Sharp:', error);
+    console.error('Error processing event image:', error);
     throw new Error('Event image processing failed');
   }
 }
@@ -128,6 +158,11 @@ export async function GET() {
 // POST handler
 export async function POST(request: NextRequest) {
   try {
+    // Verify authentication
+    const isAuthenticated = await verifyAuth(request);
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const formData = await request.formData();
     const now = new Date().toISOString();
 
@@ -149,6 +184,15 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
     if (!imageFile) {
       return NextResponse.json({ error: 'Image is required for new events' }, { status: 400 });
+    }
+
+    // Validate file type and size
+    if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+      return NextResponse.json({ error: 'Invalid image type. Allowed: JPEG, PNG, WebP' }, { status: 400 });
+    }
+    
+    if (imageFile.size > MAX_IMAGE_SIZE) {
+      return NextResponse.json({ error: 'Image too large. Maximum size: 5MB' }, { status: 400 });
     }
 
     const bytes = await imageFile.arrayBuffer();
@@ -194,6 +238,11 @@ export async function POST(request: NextRequest) {
 // PUT handler
 export async function PUT(request: NextRequest) {
   try {
+    // Verify authentication
+    const isAuthenticated = await verifyAuth(request);
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const formData = await request.formData();
     const id = formData.get('id') as string;
 
@@ -285,6 +334,11 @@ export async function PUT(request: NextRequest) {
 // DELETE handler
 export async function DELETE(request: NextRequest) {
   try {
+    // Verify authentication
+    const isAuthenticated = await verifyAuth(request);
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises'; // Using fs.promises for async operations
+import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { z } from 'zod'; // For input validation
+import { z } from 'zod';
+import { jwtVerify } from 'jose';
+
+// Auth middleware
+async function verifyAuth(request: NextRequest): Promise<boolean> {
+  try {
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token || !process.env.JWT_SECRET) return false;
+    
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Define the data directory and file paths
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -51,7 +66,11 @@ export type BlogPost = z.infer<typeof blogPostSchema>;
 // In-memory cache for blog posts
 let postsCache: BlogPost[] | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION_MS = process.env.NODE_ENV === 'development' ? 0 : 5000; // 5 seconds cache in prod, 0 in dev
+const CACHE_DURATION_MS = process.env.NODE_ENV === 'development' ? 0 : 30000; // 30 seconds cache in prod, 0 in dev
+
+// File size limits
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
 async function getBlogPosts(forceRefresh: boolean = false): Promise<BlogPost[]> {
   const now = Date.now();
@@ -93,19 +112,28 @@ function generateSlug(title: string): string {
 }
 
 async function processAndSaveImage(imageBuffer: Buffer, fileNameBase: string): Promise<string> {
-  const uniqueFileName = `${fileNameBase}-${Date.now()}.webp`; // Use timestamp for uniqueness and webp
+  // Sanitize filename
+  const sanitizedBase = fileNameBase.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 50);
+  const uniqueFileName = `${sanitizedBase}-${Date.now()}.webp`;
   const filePath = path.join(IMAGES_DIR, uniqueFileName);
   
   try {
+    // Process image with security in mind
+    const metadata = await sharp(imageBuffer).metadata();
+    
+    // Validate image dimensions
+    if (!metadata.width || !metadata.height || metadata.width > 5000 || metadata.height > 5000) {
+      throw new Error('Invalid image dimensions');
+    }
+    
     await sharp(imageBuffer)
-      .resize({ width: 1200, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 85 }) // Convert to WebP for better compression and quality
+      .resize({ width: 1200, height: 800, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 85 })
       .toFile(filePath);
+      
     return `/uploads/blog/${uniqueFileName}`;
   } catch (error) {
-    console.error('Error processing image with Sharp:', error);
-    // Fallback: try to save original if sharp fails (though less likely with buffer input)
-    // For simplicity, we'll throw. In a real app, you might save the original or a placeholder.
+    console.error('Error processing image:', error);
     throw new Error('Image processing failed');
   }
 }
@@ -142,6 +170,11 @@ export async function GET(request: NextRequest) {
 // POST handler
 export async function POST(request: NextRequest) {
   try {
+    // Verify authentication
+    const isAuthenticated = await verifyAuth(request);
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const formData = await request.formData();
     const now = new Date().toISOString();
 
@@ -166,6 +199,15 @@ export async function POST(request: NextRequest) {
     let featuredImage = '';
 
     if (imageFile) {
+      // Validate file type and size
+      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+        return NextResponse.json({ error: 'Invalid image type. Allowed: JPEG, PNG, WebP' }, { status: 400 });
+      }
+      
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        return NextResponse.json({ error: 'Image too large. Maximum size: 5MB' }, { status: 400 });
+      }
+      
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
       const slugForFileName = generateSlug(rawData.title) || 'untitled';
@@ -216,6 +258,11 @@ export async function POST(request: NextRequest) {
 // PUT handler
 export async function PUT(request: NextRequest) {
   try {
+    // Verify authentication
+    const isAuthenticated = await verifyAuth(request);
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const formData = await request.formData();
     const id = formData.get('id') as string;
 
@@ -310,6 +357,11 @@ export async function PUT(request: NextRequest) {
 // DELETE handler
 export async function DELETE(request: NextRequest) {
   try {
+    // Verify authentication
+    const isAuthenticated = await verifyAuth(request);
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

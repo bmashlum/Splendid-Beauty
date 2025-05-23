@@ -1,0 +1,30 @@
+{
+  "name": "Splendid Beauty Bar & Co.",
+  "short_name": "Splendid Beauty",
+  "description": "Atlanta's premier beauty studio offering luxury facials, expert brow artistry, clinical peels, eyelash enhancements, and permanent makeup services.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9f7e8",
+  "theme_color": "#063f48",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/splendid-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["beauty", "lifestyle", "shopping"],
+  "lang": "en-US"
+}
