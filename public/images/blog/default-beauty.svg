@@ -1,0 +1,38 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C09E6C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8c6e34;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#bgGrad)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="200" cy="200" r="150" fill="#C09E6C" opacity="0.1"/>
+  <circle cx="1000" cy="600" r="200" fill="#063f48" opacity="0.08"/>
+  
+  <!-- Center icon container -->
+  <g transform="translate(600,400)">
+    <!-- Circle background -->
+    <circle cx="0" cy="0" r="100" fill="white" stroke="#C09E6C" stroke-width="2" opacity="0.9"/>
+    
+    <!-- Sparkle icon -->
+    <g fill="url(#goldGrad)">
+      <path d="M 0,-40 L 10,-10 L 40,0 L 10,10 L 0,40 L -10,10 L -40,0 L -10,-10 Z" />
+      <circle cx="-25" cy="-25" r="5"/>
+      <circle cx="25" cy="25" r="5"/>
+      <circle cx="-25" cy="25" r="3"/>
+      <circle cx="25" cy="-25" r="3"/>
+    </g>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="550" font-family="Arial, sans-serif" font-size="24" font-weight="300" text-anchor="middle" fill="#063f48">Splendid Beauty Blog</text>
+</svg>

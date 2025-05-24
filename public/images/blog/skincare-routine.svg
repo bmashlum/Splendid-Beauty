@@ -1,0 +1,47 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Skincare Routine Background -->
+  <defs>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fdf4e3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8e8d4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C09E6C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4b988;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#skinGrad)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="150" cy="150" r="100" fill="#C09E6C" opacity="0.1"/>
+  <circle cx="1050" cy="650" r="150" fill="#063f48" opacity="0.08"/>
+  <circle cx="600" cy="400" r="250" fill="white" opacity="0.3"/>
+  
+  <!-- Beauty product bottles -->
+  <g transform="translate(500,300)">
+    <!-- Bottle 1 -->
+    <rect x="0" y="100" width="60" height="120" rx="10" fill="white" stroke="#C09E6C" stroke-width="2" opacity="0.9"/>
+    <rect x="15" y="80" width="30" height="30" rx="5" fill="url(#goldAccent)"/>
+    <circle cx="30" cy="150" r="15" fill="#C09E6C" opacity="0.3"/>
+    
+    <!-- Bottle 2 -->
+    <rect x="80" y="80" width="50" height="140" rx="25" fill="white" stroke="#063f48" stroke-width="2" opacity="0.9"/>
+    <rect x="90" y="60" width="30" height="25" rx="12" fill="#063f48"/>
+    <circle cx="105" cy="140" r="20" fill="#063f48" opacity="0.2"/>
+    
+    <!-- Bottle 3 -->
+    <rect x="150" y="120" width="70" height="100" rx="5" fill="white" stroke="#C09E6C" stroke-width="2" opacity="0.9"/>
+    <rect x="165" y="105" width="40" height="20" rx="10" fill="url(#goldAccent)"/>
+  </g>
+  
+  <!-- Decorative leaves -->
+  <g transform="translate(300,500)" opacity="0.4">
+    <path d="M0,0 Q20,-30 40,-20 Q20,-10 0,0" fill="#063f48"/>
+    <path d="M5,0 Q25,-25 45,-15 Q25,-5 5,0" fill="#063f48" opacity="0.7"/>
+  </g>
+  
+  <!-- Text overlay -->
+  <text x="600" y="550" font-family="Arial, sans-serif" font-size="28" font-weight="300" text-anchor="middle" fill="#063f48" opacity="0.6">Essential Skincare</text>
+</svg>

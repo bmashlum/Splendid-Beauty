@@ -1,0 +1,50 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Makeup Trends Background -->
+  <defs>
+    <linearGradient id="makeupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffe4e1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffd4cc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffc0cb;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="blushGrad">
+      <stop offset="0%" style="stop-color:#ff69b4;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ff1493;stop-opacity:0.2" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#makeupGrad)"/>
+  
+  <!-- Makeup palette -->
+  <g transform="translate(600,400)">
+    <!-- Palette base -->
+    <rect x="-150" y="-100" width="300" height="200" rx="20" fill="white" stroke="#063f48" stroke-width="2" opacity="0.9"/>
+    
+    <!-- Color circles -->
+    <circle cx="-80" cy="-40" r="35" fill="#ff69b4" opacity="0.8"/>
+    <circle cx="0" cy="-40" r="35" fill="#C09E6C" opacity="0.8"/>
+    <circle cx="80" cy="-40" r="35" fill="#063f48" opacity="0.8"/>
+    <circle cx="-80" cy="40" r="35" fill="#ff6347" opacity="0.8"/>
+    <circle cx="0" cy="40" r="35" fill="#dda0dd" opacity="0.8"/>
+    <circle cx="80" cy="40" r="35" fill="#20b2aa" opacity="0.8"/>
+  </g>
+  
+  <!-- Makeup brush -->
+  <g transform="translate(850,350)" opacity="0.7">
+    <rect x="-5" y="0" width="10" height="100" fill="#063f48"/>
+    <ellipse cx="0" cy="-20" rx="20" ry="30" fill="url(#blushGrad)"/>
+    <rect x="-3" y="80" width="6" height="30" fill="#C09E6C"/>
+  </g>
+  
+  <!-- Decorative sparkles -->
+  <g fill="#C09E6C" opacity="0.4">
+    <circle cx="300" cy="250" r="3"/>
+    <circle cx="320" cy="270" r="2"/>
+    <circle cx="280" cy="290" r="2.5"/>
+    <circle cx="900" cy="250" r="3"/>
+    <circle cx="920" cy="230" r="2"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="650" font-family="Arial, sans-serif" font-size="28" font-weight="300" text-anchor="middle" fill="#063f48" opacity="0.6">Makeup Trends 2024</text>
+</svg>

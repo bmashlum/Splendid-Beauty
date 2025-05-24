@@ -1,0 +1,43 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hair Care Background -->
+  <defs>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5e6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8d4f8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C09E6C;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#d4b988;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#C09E6C;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#hairGrad)"/>
+  
+  <!-- Hair strands -->
+  <g transform="translate(600,400)">
+    <path d="M-100,-200 Q-50,0 -100,200" stroke="#063f48" stroke-width="3" fill="none" opacity="0.2"/>
+    <path d="M-50,-200 Q0,0 -50,200" stroke="#063f48" stroke-width="3" fill="none" opacity="0.25"/>
+    <path d="M0,-200 Q50,0 0,200" stroke="#063f48" stroke-width="3" fill="none" opacity="0.3"/>
+    <path d="M50,-200 Q100,0 50,200" stroke="#063f48" stroke-width="3" fill="none" opacity="0.25"/>
+    <path d="M100,-200 Q150,0 100,200" stroke="#063f48" stroke-width="3" fill="none" opacity="0.2"/>
+    
+    <!-- Shine effect -->
+    <rect x="-150" y="-200" width="300" height="400" fill="url(#shineGrad)" opacity="0.4"/>
+  </g>
+  
+  <!-- Hair brush -->
+  <g transform="translate(800,500)">
+    <ellipse cx="0" cy="0" rx="60" ry="80" fill="#063f48" opacity="0.3"/>
+    <rect x="-20" y="60" width="40" height="80" rx="20" fill="#063f48" opacity="0.4"/>
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#C09E6C" stroke-width="2" opacity="0.6"/>
+  </g>
+  
+  <!-- Decorative circles -->
+  <circle cx="200" cy="200" r="120" fill="#C09E6C" opacity="0.1"/>
+  <circle cx="1000" cy="600" r="100" fill="#063f48" opacity="0.08"/>
+  
+  <!-- Text -->
+  <text x="600" y="650" font-family="Arial, sans-serif" font-size="28" font-weight="300" text-anchor="middle" fill="#063f48" opacity="0.6">Professional Hair Care</text>
+</svg>

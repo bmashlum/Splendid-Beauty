@@ -30,9 +30,12 @@ export default function BlogLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-fixed bg-center relative">
-      <div className="absolute inset-0 backdrop-blur-[1px] bg-black/5"></div>
-      <main className="flex-grow overflow-y-auto overflow-x-hidden scroll-smooth relative z-10">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Background image without fixed attachment for better performance */}
+      <div className="absolute inset-0 bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-center" />
+      {/* Simplified overlay without backdrop blur */}
+      <div className="absolute inset-0 bg-white/95"></div>
+      <main className="flex-grow relative z-10">
         <ClientLayout>{children}</ClientLayout>
       </main>
     </div>

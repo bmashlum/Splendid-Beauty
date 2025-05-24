@@ -11,11 +11,18 @@ export default function ClientLayout({
     const [scrolled, setScrolled] = useState(false)
 
     useEffect(() => {
+        let ticking = false
         const handleScroll = () => {
-            const isScrolled = window.scrollY > 10
-            setScrolled(isScrolled)
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const isScrolled = window.scrollY > 10
+                    setScrolled(isScrolled)
+                    ticking = false
+                })
+                ticking = true
+            }
         }
-        window.addEventListener('scroll', handleScroll)
+        window.addEventListener('scroll', handleScroll, { passive: true })
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 

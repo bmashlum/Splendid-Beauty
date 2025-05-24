@@ -58,3 +58,32 @@ input:focus.shadow-inner-white\/5 {
     object-fit: cover;
   }
 }
+
+/* Performance optimizations */
+/* Enable hardware acceleration for transforms */
+.group {
+  will-change: auto;
+}
+
+/* Only enable will-change on hover to reduce memory usage */
+.group:hover .group-hover\:scale-105 {
+  will-change: transform;
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Reduce animation complexity on mobile */
+@media (max-width: 768px) {
+  /* Disable complex hover effects on mobile */
+  .group:hover .group-hover\:scale-105 {
+    transform: none !important;
+  }
+  
+  /* Simplify transitions on mobile */
+  .transition-all {
+    transition-duration: 200ms !important;
+  }
+}
