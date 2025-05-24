@@ -8,16 +8,16 @@ import { ThemeProvider } from '@/components/theme-provider'
 
 const inter = Inter({ 
   subsets: ['latin'],
-  display: 'swap',
-  preload: true
+  display: 'swap',  // Use 'swap' to prevent FOIT
+  preload: true     // Preload the font files
 })
 
 const forum = Forum({
   weight: '400',
   subsets: ['latin'],
   variable: '--font-forum',
-  display: 'swap',
-  preload: true
+  display: 'swap',  // Use 'swap' to prevent FOIT
+  preload: true     // Preload the font files
 })
 
 /* -------------------------------------------------------------------------- */
@@ -135,7 +135,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${inter.className} ${forum.variable}`}
     >
       <head>
-        {/* Critical resource preloads */}
+        {/* Resource hints for faster loading */}
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        
+        {/* DNS prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        
+        {/* Preconnect to establish early connections */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        
+        {/* Preload critical assets */}
         <link
           rel="preload"
           as="image"
@@ -144,10 +155,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
           type="image/webp"
         />
         
-        {/* DNS Prefetch for external resources */}
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Pre-render hints to improve Core Web Vitals */}
+        <meta name="theme-color" content="#C09E6C" />
+        
+        {/* Performance hints */}
+        <meta httpEquiv="x-dns-prefetch-control" content="on" />
+        <meta httpEquiv="Cache-Control" content="public, max-age=31536000, immutable" />
+        
+        {/* Favicon and other icons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         
         {/* SEO and Social Media Tags */}
         <meta name="author" content="Splendid Beauty Bar & Co." />

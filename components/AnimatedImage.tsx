@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+// Remove unused Head import for better performance
+import dynamic from 'next/dynamic';
 
 interface AnimatedImageProps {
     imagePath: string;
@@ -11,6 +13,7 @@ interface AnimatedImageProps {
     objectPosition?: string;
     priority?: boolean;
     isInView?: boolean;
+    imageOnly?: boolean; // Only load image, skip video for critical LCP elements
 }
 
 const AnimatedImage = memo(function AnimatedImage({
@@ -22,6 +25,7 @@ const AnimatedImage = memo(function AnimatedImage({
     objectPosition = 'object-center',
     priority = false,
     isInView = false,
+    imageOnly = false,
 }: AnimatedImageProps) {
     // Determine if we should use object-contain on XL screens
     const shouldUseContainXL = objectPosition.includes('xl:object-contain');
@@ -29,21 +33,36 @@ const AnimatedImage = memo(function AnimatedImage({
     const [, setIsVideoLoaded] = useState(false);
     const [hasVideoEnded, setHasVideoEnded] = useState(false);
     const [videoError, setVideoError] = useState(false);
-    const [isVideoSupported, setIsVideoSupported] = useState(true);
+    const [isVideoSupported, setIsVideoSupported] = useState(false);
     const [isVideoTagReady, setIsVideoTagReady] = useState(false);
     const [canVideoActuallyPlay, setCanVideoActuallyPlay] = useState(false);
     const [isVideoFading, setIsVideoFading] = useState(false);
 
     useEffect(() => {
+        // Check if window exists (client-side only)
         if (typeof window !== 'undefined') {
+            // Check if user prefers reduced motion
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            
+            if (prefersReducedMotion) {
+                // Skip video for users who prefer reduced motion
+                setIsVideoSupported(false);
+                return;
+            }
+            
+            // Check device capabilities
             const video = document.createElement('video');
             const isVideoTypeSupported = !!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4'));
             
             // Check for low power mode or reduced motion preference
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             
-            // Set support based on video type support and user preferences
-            setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion);
+            // Check if on mobile network
+            const connection = (navigator as any).connection;
+            const isSaveData = connection && (connection.saveData || connection.effectiveType === '2g' || connection.effectiveType === '3g');
+            
+            // Only support video on desktop and non-iOS devices that aren't in save-data mode
+            setIsVideoSupported(isVideoTypeSupported && !isIOS && !isSaveData);
         }
     }, []);
 
@@ -94,7 +113,7 @@ const AnimatedImage = memo(function AnimatedImage({
 
     return (
         <div className="relative w-full h-full overflow-hidden">
-            {/* Note: xl-object-contain class is defined in global styles */}
+            {/* Remove inline styles from Head for better performance */}
             {/* Static Image Layer */}
             <div className="absolute inset-0">
                 <Image
@@ -102,7 +121,7 @@ const AnimatedImage = memo(function AnimatedImage({
                     alt={alt}
                     className={cn(
                         "w-full h-full object-cover",
-                        shouldUseContainXL ? "xl-object-contain" : "",
+                        shouldUseContainXL ? "xl:object-contain" : "",
                         // Only use positioning part from objectPosition
                         objectPosition.includes("object-center") ? "object-center" : "",
                         objectPosition.includes("object-bottom") ? "object-bottom" : "",
@@ -114,7 +133,7 @@ const AnimatedImage = memo(function AnimatedImage({
                     fill
                     priority={priority}
                     sizes={sizes}
-                    quality={95}
+                    quality={80}
                     loading={priority ? "eager" : "lazy"}
                     placeholder="blur"
                     blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmM2Y0ZjYiLz48L3N2Zz4="
@@ -125,13 +144,13 @@ const AnimatedImage = memo(function AnimatedImage({
                 />
             </div>
 
-            {/* Video Layer */}
-            {isVideoSupported && (
+            {/* Video Layer - Skip for image-only mode */}
+            {isVideoSupported && !imageOnly && (
                 <motion.video
                     ref={videoRef}
                     className={cn(
                         "absolute inset-0 h-full w-full object-cover",
-                        shouldUseContainXL ? "xl-object-contain" : "",
+                        shouldUseContainXL ? "xl:object-contain" : "",
                         // Only use positioning part from objectPosition
                         objectPosition.includes("object-center") ? "object-center" : "",
                         objectPosition.includes("object-bottom") ? "object-bottom" : "",
@@ -142,18 +161,18 @@ const AnimatedImage = memo(function AnimatedImage({
                     )}
                     playsInline
                     muted
-                    autoPlay
+                    autoPlay={false} /* Disable autoplay - we control this via isInView */
                     loop={false}
-                    preload="metadata"
+                    preload="metadata" /* Only preload metadata for better performance */
                     initial={{ opacity: 0 }}
                     animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
                     transition={{ duration: 0.5 }}
-                    onLoadedData={() => {
+                    onLoadedMetadata={() => { /* Use lighter onLoadedMetadata instead of onLoadedData */
                         setIsVideoTagReady(true);
                         if (videoRef.current?.play) {
                             setCanVideoActuallyPlay(true);
                         } else {
-                            console.warn("Video element missing play function onLoadedData");
+                            console.warn("Video element missing play function");
                             setCanVideoActuallyPlay(false);
                             setVideoError(true);
                         }
@@ -176,9 +195,8 @@ const AnimatedImage = memo(function AnimatedImage({
                         setCanVideoActuallyPlay(false);
                         setIsVideoFading(false);
                     }}
-                    src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
-                    crossOrigin="anonymous"
-                    poster={imagePath} // Use the static image as a fallback poster
+                    src={isInView ? videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4') : ''} /* Only set src when in view */
+                    poster={imagePath} /* Use the static image as a fallback poster */
                 >
                     Your browser does not support the video tag.
                 </motion.video>
