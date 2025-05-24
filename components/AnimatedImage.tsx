@@ -43,24 +43,24 @@ const AnimatedImage = memo(function AnimatedImage({
         if (typeof window !== 'undefined') {
             // Check if user prefers reduced motion
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            
+
             if (prefersReducedMotion) {
                 // Skip video for users who prefer reduced motion
                 setIsVideoSupported(false);
                 return;
             }
-            
+
             // Check device capabilities
             const video = document.createElement('video');
             const isVideoTypeSupported = !!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4'));
-            
-            // Check for low power mode or reduced motion preference
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            
+
+            // Check if on iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
             // Check if on mobile network
             const connection = (navigator as any).connection;
             const isSaveData = connection && (connection.saveData || connection.effectiveType === '2g' || connection.effectiveType === '3g');
-            
+
             // Only support video on desktop and non-iOS devices that aren't in save-data mode
             setIsVideoSupported(isVideoTypeSupported && !isIOS && !isSaveData);
         }
@@ -72,7 +72,7 @@ const AnimatedImage = memo(function AnimatedImage({
                 videoRef.current.currentTime = 0;
                 // Try to play and catch any autoplay restrictions
                 const playPromise = videoRef.current.play();
-                
+
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         // Autoplay started successfully
@@ -82,11 +82,11 @@ const AnimatedImage = memo(function AnimatedImage({
                     }).catch(error => {
                         // Autoplay was prevented
                         console.warn('Video autoplay prevented:', error);
-                        
+
                         // On mobile, instead of marking as error, just consider it ended
                         // This will fall back to the static image without error state
                         setHasVideoEnded(true);
-                        
+
                         // Don't set video error, which would prevent future attempts
                         // setVideoError(true);
                         // setCanVideoActuallyPlay(false);
