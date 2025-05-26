@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import crypto from 'crypto';
 
-// Auth configuration
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const JWT_SECRET = process.env.JWT_SECRET;
-
 // Rate limiting map (in production, use Redis or similar)
 const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
 const MAX_ATTEMPTS = 5;
@@ -14,9 +9,18 @@ const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 
 export async function POST(request: NextRequest) {
   try {
+    // Get auth configuration
+    const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+    const JWT_SECRET = process.env.JWT_SECRET;
+
     // Check if auth is properly configured
     if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !JWT_SECRET) {
-      console.error('Auth configuration missing');
+      console.error('Auth configuration missing:', {
+        hasUsername: !!ADMIN_USERNAME,
+        hasPassword: !!ADMIN_PASSWORD,
+        hasSecret: !!JWT_SECRET
+      });
       return NextResponse.json(
         { error: 'Authentication service unavailable' },
         { status: 503 }

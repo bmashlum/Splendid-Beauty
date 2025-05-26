@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
-
 export async function middleware(request: NextRequest) {
   // Check if the request is for admin routes (excluding login)
   if (request.nextUrl.pathname.startsWith('/admin') &&
@@ -18,6 +16,7 @@ export async function middleware(request: NextRequest) {
 
     try {
       // Verify the token
+      const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
       const secret = new TextEncoder().encode(JWT_SECRET);
       await jwtVerify(token, secret);
 

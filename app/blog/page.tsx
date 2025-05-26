@@ -103,7 +103,7 @@ const BlogHero: React.FC<{ onSearch: (query: string) => void; initialQuery?: str
   };
 
   return (
-    <motion.div className="relative w-full min-h-[500px] lg:min-h-[600px] flex items-center justify-center overflow-hidden">
+    <motion.div className="relative w-full min-h-[500px] lg:min-h-[600px] flex items-center justify-center overflow-hidden pt-20">
       {/* Enhanced gradient background with multiple layers */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#063f48] via-[#063f48]/95 to-[#052b31]" />
       
@@ -263,7 +263,7 @@ const BlogPostCard: React.FC<{ post: BlogPost; featured?: boolean; priority?: bo
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
   const imageAlt = post.imageAlt || `Image for ${post.title}`;
-  const imageSrc = imageError ? '/images/blog/default-beauty.jpg' : getLocalImagePath(post.slug);
+  const imageSrc = imageError ? '/images/blog/default-beauty.jpg' : (post.featuredImage || getLocalImagePath(post.slug));
 
   return (
     <div

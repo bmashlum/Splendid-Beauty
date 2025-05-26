@@ -225,7 +225,7 @@ export default function BlogPostPage() {
     );
   }
 
-  const imageSrc = imageError ? '/images/blog/default-beauty.jpg' : getLocalImagePath(post.slug);
+  const imageSrc = imageError ? '/images/blog/default-beauty.jpg' : (post.featuredImage || getLocalImagePath(post.slug));
 
   return (
     <motion.div
