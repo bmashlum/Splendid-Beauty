@@ -61,23 +61,20 @@ const VideoModal = memo(function VideoModal({ isOpen, onClose, videoId }: VideoM
                             </Dialog.Title>
                             <button
                                 onClick={onClose}
-                                className="absolute -top-8 right-0 z-10 text-white hover:text-gray-300 p-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
-                                aria-label="Close video player" // Accessibility label
+                                className="absolute -top-12 right-0 z-10 text-white hover:text-gray-300 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+                                aria-label="Close video player"
                             >
-                                {/* Simple text or an X icon */}
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            {/* Aspect ratio container for video */}
-                            <div className="aspect-w-16 aspect-h-9">
+                            {/* Video container with explicit aspect ratio */}
+                            <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
                                 <iframe
-                                    width="100%"
-                                    height="100%"
+                                    className="absolute top-0 left-0 w-full h-full rounded-lg"
                                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     allowFullScreen
-                                    className="rounded-lg"
                                     title={`Splendid Beauty Bar video presentation`}
                                     loading="lazy"
                                 />

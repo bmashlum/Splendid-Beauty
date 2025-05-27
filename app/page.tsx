@@ -23,6 +23,7 @@ import Navbar from '@/components/navbar'
 import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
 import ServiceHoverPoints from '@/components/ServiceHoverPoints'
+import AcademyCourses from '@/components/AcademyCourses'
 
 // --- Schema Imports ---
 const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { 
@@ -235,7 +236,7 @@ const sectionsData: SectionData[] = [
   { id: 'hero', objectPosition: 'object-[center_top_15%] sm:object-center' }, // Shift image down 15% on mobile
   { id: 'events', content: <EventsSection /> },
   { id: 'about-us', objectPosition: 'object-center' },
-  { id: 'award-1', objectPosition: 'object-center' },
+  { id: 'award-1', objectPosition: 'object-center', overlay: 'video' },
   { id: 'award-2', objectPosition: 'object-center' },
   { id: 'we-do-that', objectPosition: 'object-center' },
   { id: 'book-now', objectPosition: 'object-center', overlay: 'bookbutton' },
@@ -566,13 +567,20 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
         {needsHoverPoints && serviceVideoEnded && (
           <ServiceHoverPoints serviceId={id} onBookingClick={onBookingClick} />
         )}
+        
+        {/* Academy Courses Section - show below the academy image/video */}
+        {id === 'academy' && (
+          <div className="absolute bottom-8 left-0 right-0 z-20 px-6 xl:px-12">
+            <AcademyCourses />
+          </div>
+        )}
       </div>
 
       {/* Video Button Overlay */}
       {overlay === 'video' && (
         <motion.button
           onClick={onVideoClick}
-          className="absolute left-[50%] top-[70%] transform -translate-x-1/2 -translate-y-1/2 h-[12%] w-[30%] max-h-[80px] max-w-[180px] sm:left-[15%] sm:top-[60%] sm:h-[18%] sm:w-[35%] sm:max-h-[130px] sm:max-w-[280px] cursor-pointer rounded-lg transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400"
+          className="absolute left-[23.5%] top-[62.9%] transform -translate-x-1/2 -translate-y-1/2 h-[18%] w-[35%] max-h-[130px] max-w-[280px] cursor-pointer rounded-lg transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400"
           aria-label="Watch introduction video"
           variants={overlayVariants}
           initial="initial"
