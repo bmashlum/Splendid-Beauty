@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -24,6 +24,17 @@ export default function AcademyCourses() {
   const [showCourses, setShowCourses] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [hoveredCourse, setHoveredCourse] = useState<string | null>(null)
+  const [selectedMobileCourse, setSelectedMobileCourse] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleImageLoad = (courseId: string) => {
     setLoadedImages(prev => new Set(prev).add(courseId))
@@ -87,8 +98,9 @@ export default function AcademyCourses() {
             transition={{ duration: 0.4, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
+            {/* Desktop View - unchanged */}
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-white/10 backdrop-blur-sm rounded-2xl"
+              className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-white/10 backdrop-blur-sm rounded-2xl"
               initial={{ y: -20 }}
               animate={{ y: 0 }}
               exit={{ y: -20 }}
@@ -105,7 +117,7 @@ export default function AcademyCourses() {
                   onMouseEnter={() => setHoveredCourse(course.id)}
                   onMouseLeave={() => setHoveredCourse(null)}
                 >
-                  <div className="relative w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 group-hover:shadow-2xl">
+                  <div className="relative w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 group-hover:shadow-2xl group-hover:scale-105">
                     {!loadedImages.has(course.id) && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                         <svg
@@ -144,13 +156,72 @@ export default function AcademyCourses() {
                 </motion.div>
               ))}
             </motion.div>
+
+            {/* Mobile View - new carousel style */}
+            <div className="sm:hidden">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+                <div className="overflow-x-auto pb-2">
+                  <div className="flex gap-3" style={{ width: 'max-content' }}>
+                    {courses.map((course, index) => (
+                      <motion.div
+                        key={course.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                        className="w-[280px] flex-shrink-0"
+                        onClick={() => setSelectedMobileCourse(course.id)}
+                      >
+                        <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-lg">
+                          {!loadedImages.has(course.id) && (
+                            <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                              <svg
+                                className="w-12 h-12 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                          <Image
+                            src={course.imagePath}
+                            alt={`Training ${course.name}`}
+                            fill
+                            className={cn(
+                              "object-cover transition-opacity duration-300",
+                              loadedImages.has(course.id) ? "opacity-100" : "opacity-0"
+                            )}
+                            sizes="280px"
+                            onLoad={() => handleImageLoad(course.id)}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                            <p className="text-sm font-medium uppercase tracking-wider">
+                              {course.name}
+                            </p>
+                            <p className="text-xs opacity-80 mt-1">Tap to view</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-center text-xs text-white/60 mt-2">Swipe to see more courses →</p>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Enlarged Course View Overlay */}
+      {/* Desktop Enlarged Course View Overlay - unchanged */}
       <AnimatePresence>
-        {hoveredCourse && showCourses && (
+        {hoveredCourse && showCourses && !isMobile && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -186,6 +257,58 @@ export default function AcademyCourses() {
                 </div>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Fullscreen View */}
+      <AnimatePresence>
+        {selectedMobileCourse && isMobile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black"
+            onClick={() => setSelectedMobileCourse(null)}
+          >
+            {/* Close button */}
+            <div className="absolute top-4 right-4 z-10">
+              <button
+                className="p-3 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedMobileCourse(null);
+                }}
+                aria-label="Close fullscreen view"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Image container with proper aspect ratio handling */}
+            <div className="w-full h-full flex items-center justify-center p-4">
+              <div className="relative w-full h-full max-w-[100vw] max-h-[85vh]">
+                <Image
+                  src={courses.find(c => c.id === selectedMobileCourse)?.imagePath || ''}
+                  alt={`Training ${courses.find(c => c.id === selectedMobileCourse)?.name || ''}`}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  priority
+                />
+              </div>
+            </div>
+            
+            {/* Course name overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+              <h3 className="text-xl font-bold uppercase tracking-wider text-white text-center">
+                {courses.find(c => c.id === selectedMobileCourse)?.name || ''}
+              </h3>
+              <p className="text-sm opacity-70 mt-1 text-white text-center">Tap anywhere to close</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
