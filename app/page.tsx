@@ -580,7 +580,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
       {overlay === 'video' && (
         <motion.button
           onClick={onVideoClick}
-          className="absolute left-[23.5%] top-[62.9%] transform -translate-x-1/2 -translate-y-1/2 h-[18%] w-[35%] max-h-[130px] max-w-[280px] cursor-pointer rounded-lg transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400"
+          className="absolute left-[23.5%] top-[62.9%] transform -translate-x-1/2 -translate-y-1/2 h-[18%] w-[35%] max-h-[130px] max-w-[280px] cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400"
           aria-label="Watch introduction video"
           variants={overlayVariants}
           initial="initial"
