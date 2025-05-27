@@ -22,6 +22,7 @@ import { getSectionConfig } from '@/lib/constants'
 import Navbar from '@/components/navbar'
 import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
+import ServiceHoverPoints from '@/components/ServiceHoverPoints'
 
 // --- Schema Imports ---
 const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { 
@@ -289,9 +290,13 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isConnectFabExpanded, setIsConnectFabExpanded] = useState(false);
+  const [serviceVideoEnded, setServiceVideoEnded] = useState(false);
   
-  // Check if this is one of the sections that needs mobile buttons
-  const needsMobileButton = ['perm-makeup', 'perm-medical', 'facial', 'eyelash'].includes(id);
+  // Check if this is one of the sections that needs hover points
+  const needsHoverPoints = ['perm-makeup', 'perm-medical', 'facial', 'eyelash'].includes(id);
+  
+  // Get section config
+  const sectionConfig = getSectionConfig(id);
 
   // Button positions optimized for XL screens
   const buttonPositions = useMemo<Record<string, ButtonPosition>>(() => ({
@@ -302,7 +307,11 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    // If there's no video (static image only), show hover points immediately
+    if (needsHoverPoints && !sectionConfig) {
+      setServiceVideoEnded(true);
+    }
+  }, [needsHoverPoints, sectionConfig]);
 
   useEffect(() => {
     if (id === 'shop' && sectionRef.current) {
@@ -338,7 +347,6 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   }
 
   const isHero = id === 'hero';
-  const sectionConfig = getSectionConfig(id);
   const staticImageSrc = !sectionConfig ? loadedImages[id] : null;
 
   // Section container classes: Full width/aspect-video by default, constrained on XL+
@@ -522,6 +530,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
             objectPosition={objectPosition}
             priority={isHero || priorityImages.includes(id)}
             isInView={isSectionInViewForPlayback}
+            onVideoEnded={needsHoverPoints ? () => setServiceVideoEnded(true) : undefined}
           />
         ) : staticImageSrc ? (
           <Image
@@ -553,7 +562,10 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
         )}
         
-        {/* Mobile Button for special sections - Removed as requested */}
+        {/* Service Hover Points for the last 4 service sections - only show after video ends */}
+        {needsHoverPoints && serviceVideoEnded && (
+          <ServiceHoverPoints serviceId={id} onBookingClick={onBookingClick} />
+        )}
       </div>
 
       {/* Video Button Overlay */}

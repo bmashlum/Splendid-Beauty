@@ -11,6 +11,7 @@ interface AnimatedImageProps {
     objectPosition?: string;
     priority?: boolean;
     isInView?: boolean;
+    onVideoEnded?: () => void;
 }
 
 const AnimatedImage = memo(function AnimatedImage({
@@ -22,6 +23,7 @@ const AnimatedImage = memo(function AnimatedImage({
     objectPosition = 'object-center',
     priority = false,
     isInView = false,
+    onVideoEnded,
 }: AnimatedImageProps) {
     // Determine if we should use object-contain on XL screens
     const shouldUseContainXL = objectPosition.includes('xl:object-contain');
@@ -68,6 +70,11 @@ const AnimatedImage = memo(function AnimatedImage({
                         // This will fall back to the static image without error state
                         setHasVideoEnded(true);
                         
+                        // Also trigger the onVideoEnded callback for autoplay prevention
+                        if (onVideoEnded) {
+                            onVideoEnded();
+                        }
+                        
                         // Don't set video error, which would prevent future attempts
                         // setVideoError(true);
                         // setCanVideoActuallyPlay(false);
@@ -77,6 +84,11 @@ const AnimatedImage = memo(function AnimatedImage({
                 console.warn('Video play attempt failed:', error);
                 // Same fallback as above
                 setHasVideoEnded(true);
+                
+                // Also trigger the onVideoEnded callback
+                if (onVideoEnded) {
+                    onVideoEnded();
+                }
             }
         }
     }, [videoError]);
@@ -169,6 +181,10 @@ const AnimatedImage = memo(function AnimatedImage({
                         setTimeout(() => {
                             setIsVideoFading(false);
                         }, 500);
+                        // Call the callback if provided
+                        if (onVideoEnded) {
+                            onVideoEnded();
+                        }
                     }}
                     onError={(e) => {
                         console.error(`Video error: ${videoPath}`, e);

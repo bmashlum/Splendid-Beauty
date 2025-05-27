@@ -47,6 +47,7 @@ const useNavLinks = (): NavLinkItem[] => {
   return useMemo(() => [
     { name: "Home", href: "/", ariaLabel: "Go to homepage" },
     { name: "About Us", href: isScrollablePage ? "#about" : "/#about", ariaLabel: "Learn about us" },
+    { name: "Services", href: isScrollablePage ? "#perm-makeup" : "/#perm-makeup", ariaLabel: "View our beauty services" },
     { name: "We Do That", href: isScrollablePage ? "#we-do-that" : "/#we-do-that", ariaLabel: "View our services" },
     { name: "Book Now", href: "#", isBooking: true, ariaLabel: "Book an appointment" },
     { name: "Shop", href: isScrollablePage ? "#shop" : "/#shop", ariaLabel: "Shop our products" },
