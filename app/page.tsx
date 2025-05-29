@@ -570,7 +570,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
         
         {/* Academy Courses Section - show below the academy image/video */}
         {id === 'academy' && (
-          <div className="absolute bottom-8 left-0 right-0 z-20 px-6 xl:px-12">
+          <div className="absolute bottom-4 left-0 right-0 z-20 px-6 xl:px-12">
             <AcademyCourses />
           </div>
         )}
