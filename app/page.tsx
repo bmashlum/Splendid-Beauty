@@ -24,6 +24,7 @@ import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
 import ServiceHoverPoints from '@/components/ServiceHoverPoints'
 import AcademyCourses from '@/components/AcademyCourses'
+import FloatingChatWidget from '@/components/FloatingChatWidget'
 
 // --- Schema Imports ---
 const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { 
@@ -948,6 +949,9 @@ export default function Home() {
             )}
           </AnimatePresence>
         </main>
+        
+        {/* Floating Chat Widget */}
+        <FloatingChatWidget />
       </div>
     </ErrorBoundary>
   );
