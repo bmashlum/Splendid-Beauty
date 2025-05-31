@@ -64,12 +64,64 @@ const Navbar = React.memo(function Navbar({ scrolled: initialScrolled = false }:
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(initialScrolled);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
   const navLinks = useNavLinks();
   const pathname = usePathname();
   const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Track active section for navigation highlighting
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const sectionIds = [
+      'hero', 'events', 'about-us', 'award-1', 'award-2', 'we-do-that', 
+      'book-now', 'true-beauty', 'portfolio', 'shop', 'hair-studio', 
+      'academy', 'policies', 'connect', 'financing', 'perm-makeup', 
+      'perm-medical', 'facial', 'eyelash'
+    ];
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          // Map section IDs to navigation items
+          if (id === 'hero') {
+            setActiveSection('/');
+          } else if (id === 'about-us') {
+            setActiveSection('#about');
+          } else if (['perm-makeup', 'perm-medical', 'facial', 'eyelash'].includes(id)) {
+            setActiveSection('#perm-makeup');
+          } else {
+            setActiveSection(`#${id}`);
+          }
+        }
+      });
+    };
+
+    observerRef.current = new IntersectionObserver(handleIntersection, {
+      root: document.getElementById('main-content'),
+      rootMargin: '-20% 0px -70% 0px',
+      threshold: 0
+    });
+
+    // Observe all sections
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element && observerRef.current) {
+        observerRef.current.observe(element);
+      }
+    });
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
   }, [pathname]);
 
   useEffect(() => {
@@ -120,18 +172,44 @@ const Navbar = React.memo(function Navbar({ scrolled: initialScrolled = false }:
       const mainContent = document.getElementById('main-content');
 
       if (targetElement && mainContent) {
-        const offsetTop = targetElement.offsetTop;
+        // Get the height of the navbar for offset calculation
+        const navbarHeight = window.innerWidth < 640 ? 48 : 56; // h-12 on mobile, h-14 on larger screens
+        const viewportHeight = window.innerHeight;
+        const elementHeight = targetElement.offsetHeight;
+        
+        // Calculate offset to center the element in viewport
+        // If element is taller than viewport, just scroll to top with navbar offset
+        let scrollOffset = targetElement.offsetTop - navbarHeight;
+        
+        if (elementHeight < viewportHeight - navbarHeight) {
+          // Center smaller elements in the viewport
+          const centerOffset = (viewportHeight - elementHeight - navbarHeight) / 2;
+          scrollOffset = targetElement.offsetTop - navbarHeight - centerOffset;
+        }
+        
+        // Ensure we don't scroll past the top
+        scrollOffset = Math.max(0, scrollOffset);
+        
         mainContent.scrollTo({
-          top: offsetTop,
+          top: scrollOffset,
           behavior: 'smooth'
         });
         
-        // Update focus for accessibility
-        targetElement.setAttribute('tabindex', '-1');
-        targetElement.focus();
-        targetElement.addEventListener('blur', () => {
-          targetElement.removeAttribute('tabindex');
-        }, { once: true });
+        // Add a slight delay to ensure scroll completes before focusing
+        setTimeout(() => {
+          // Update focus for accessibility
+          targetElement.setAttribute('tabindex', '-1');
+          targetElement.focus({ preventScroll: true });
+          targetElement.addEventListener('blur', () => {
+            targetElement.removeAttribute('tabindex');
+          }, { once: true });
+          
+          // Add visual feedback
+          targetElement.classList.add('ring-2', 'ring-[#C09E6C]', 'ring-offset-4');
+          setTimeout(() => {
+            targetElement.classList.remove('ring-2', 'ring-[#C09E6C]', 'ring-offset-4');
+          }, 2000);
+        }, 500);
       } else if (targetId === 'hero' && mainContent) {
         mainContent.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -190,7 +268,9 @@ const Navbar = React.memo(function Navbar({ scrolled: initialScrolled = false }:
                     className={cn(
                       "font-forum text-sm xl:text-base transition-all duration-200 hover:text-[#C09E6C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C09E6C] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm",
                       "text-stone-800",
-                      link.isBooking && "bg-[#C09E6C] text-white px-4 py-2 rounded-full hover:bg-[#a88a5d] hover:text-white shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                      link.isBooking && "bg-[#C09E6C] text-white px-4 py-2 rounded-full hover:bg-[#a88a5d] hover:text-white shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95",
+                      // Active state highlighting
+                      !link.isBooking && activeSection === link.href && "text-[#C09E6C] font-bold"
                     )}
                     aria-label={link.ariaLabel || link.name}
                     onClick={(e) => handleNavLinkClick(e, link.href, link.isBooking)}
@@ -239,7 +319,9 @@ const Navbar = React.memo(function Navbar({ scrolled: initialScrolled = false }:
                             "block text-lg font-forum transition-all py-3 px-3 rounded-md hover:bg-gray-100 focus-visible:outline-none focus-visible:bg-gray-100",
                             link.isBooking
                               ? "bg-[#C09E6C] text-white hover:bg-[#a88a5d] hover:text-white shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 text-center my-4"
-                              : "text-gray-800 hover:text-[#C09E6C]"
+                              : "text-gray-800 hover:text-[#C09E6C]",
+                            // Active state highlighting
+                            !link.isBooking && activeSection === link.href && "bg-[#C09E6C]/10 text-[#C09E6C] font-semibold"
                           )}
                           aria-label={link.ariaLabel || link.name}
                           scroll={!link.href.startsWith("#") && !link.isExternal}

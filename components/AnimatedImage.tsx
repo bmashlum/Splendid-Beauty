@@ -35,6 +35,8 @@ const AnimatedImage = memo(function AnimatedImage({
     const [isVideoTagReady, setIsVideoTagReady] = useState(false);
     const [canVideoActuallyPlay, setCanVideoActuallyPlay] = useState(false);
     const [isVideoFading, setIsVideoFading] = useState(false);
+    const [isBuffering, setIsBuffering] = useState(false);
+    const bufferCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -44,41 +46,81 @@ const AnimatedImage = memo(function AnimatedImage({
             // Check for low power mode or reduced motion preference
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             
-            // Set support based on video type support and user preferences
-            setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion);
+            // Check connection speed
+            const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+            const isSlowConnection = connection && (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g');
+            
+            // Set support based on video type support, user preferences, and connection
+            setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion && !isSlowConnection);
         }
     }, []);
 
+    // Monitor buffering state
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !isVideoSupported) return;
+
+        const checkBuffering = () => {
+            if (video.readyState < 3) {
+                setIsBuffering(true);
+            } else {
+                setIsBuffering(false);
+            }
+        };
+
+        const handleWaiting = () => setIsBuffering(true);
+        const handlePlaying = () => setIsBuffering(false);
+        const handleCanPlay = () => setIsBuffering(false);
+
+        video.addEventListener('waiting', handleWaiting);
+        video.addEventListener('playing', handlePlaying);
+        video.addEventListener('canplay', handleCanPlay);
+
+        // Check buffering state periodically
+        bufferCheckInterval.current = setInterval(checkBuffering, 500);
+
+        return () => {
+            video.removeEventListener('waiting', handleWaiting);
+            video.removeEventListener('playing', handlePlaying);
+            video.removeEventListener('canplay', handleCanPlay);
+            if (bufferCheckInterval.current) {
+                clearInterval(bufferCheckInterval.current);
+            }
+        };
+    }, [isVideoSupported, isVideoTagReady]);
+
     const attemptPlayVideo = useCallback(async () => {
-        if (videoRef.current && !videoError) {
+        if (videoRef.current && !videoError && !isBuffering) {
             try {
-                videoRef.current.currentTime = 0;
-                // Try to play and catch any autoplay restrictions
-                const playPromise = videoRef.current.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        // Autoplay started successfully
-                        setIsVideoLoaded(true);
-                        setHasVideoEnded(false);
-                        setIsVideoFading(false);
-                    }).catch(error => {
-                        // Autoplay was prevented
-                        console.warn('Video autoplay prevented:', error);
-                        
-                        // On mobile, instead of marking as error, just consider it ended
-                        // This will fall back to the static image without error state
-                        setHasVideoEnded(true);
-                        
-                        // Also trigger the onVideoEnded callback for autoplay prevention
-                        if (onVideoEnded) {
-                            onVideoEnded();
-                        }
-                        
-                        // Don't set video error, which would prevent future attempts
-                        // setVideoError(true);
-                        // setCanVideoActuallyPlay(false);
-                    });
+                // Ensure video is ready to play
+                if (videoRef.current.readyState >= 3) {
+                    videoRef.current.currentTime = 0;
+                    // Try to play and catch any autoplay restrictions
+                    const playPromise = videoRef.current.play();
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            // Autoplay started successfully
+                            setIsVideoLoaded(true);
+                            setHasVideoEnded(false);
+                            setIsVideoFading(false);
+                        }).catch(error => {
+                            // Autoplay was prevented
+                            console.warn('Video autoplay prevented:', error);
+                            
+                            // On mobile, instead of marking as error, just consider it ended
+                            // This will fall back to the static image without error state
+                            setHasVideoEnded(true);
+                            
+                            // Also trigger the onVideoEnded callback for autoplay prevention
+                            if (onVideoEnded) {
+                                onVideoEnded();
+                            }
+                        });
+                    }
+                } else {
+                    // Video not ready, retry after a short delay
+                    setTimeout(() => attemptPlayVideo(), 100);
                 }
             } catch (error) {
                 console.warn('Video play attempt failed:', error);
@@ -91,18 +133,25 @@ const AnimatedImage = memo(function AnimatedImage({
                 }
             }
         }
-    }, [videoError]);
+    }, [videoError, isBuffering, onVideoEnded]);
 
     useEffect(() => {
-        if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded && isVideoSupported && !videoError) {
+        if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded && isVideoSupported && !videoError && !isBuffering) {
             attemptPlayVideo();
         } else if (!isInView && videoRef.current && !videoRef.current.paused) {
             videoRef.current.pause();
         }
-    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError]);
+    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError, isBuffering]);
 
-    const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded;
+    const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded && !isBuffering;
     const isFadingVideo = isVideoSupported && !videoError && isVideoFading;
+
+    // Preload strategy based on priority and viewport
+    const getPreloadStrategy = () => {
+        if (priority) return "auto";
+        if (isInView) return "metadata";
+        return "none";
+    };
 
     return (
         <div className="relative w-full h-full overflow-hidden">
@@ -154,26 +203,27 @@ const AnimatedImage = memo(function AnimatedImage({
                     )}
                     playsInline
                     muted
-                    autoPlay
+                    autoPlay={false} // Disable autoplay attribute, handle manually
                     loop={false}
-                    preload="metadata"
+                    preload={getPreloadStrategy()}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
                     transition={{ duration: 0.5 }}
-                    onLoadedData={() => {
+                    onLoadedMetadata={() => {
                         setIsVideoTagReady(true);
                         if (videoRef.current?.play) {
                             setCanVideoActuallyPlay(true);
                         } else {
-                            console.warn("Video element missing play function onLoadedData");
+                            console.warn("Video element missing play function onLoadedMetadata");
                             setCanVideoActuallyPlay(false);
                             setVideoError(true);
                         }
                     }}
-                    onCanPlay={() => {
+                    onCanPlayThrough={() => {
                         if (!canVideoActuallyPlay) {
                             setCanVideoActuallyPlay(true);
                         }
+                        setIsBuffering(false);
                     }}
                     onEnded={() => {
                         setHasVideoEnded(true);
@@ -192,12 +242,30 @@ const AnimatedImage = memo(function AnimatedImage({
                         setCanVideoActuallyPlay(false);
                         setIsVideoFading(false);
                     }}
-                    src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
+                    onStalled={() => {
+                        setIsBuffering(true);
+                    }}
                     crossOrigin="anonymous"
                     poster={imagePath} // Use the static image as a fallback poster
                 >
+                    {/* Provide multiple sources for better browser support */}
+                    <source 
+                        src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.webm')} 
+                        type="video/webm"
+                    />
+                    <source 
+                        src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')} 
+                        type="video/mp4"
+                    />
                     Your browser does not support the video tag.
                 </motion.video>
+            )}
+
+            {/* Buffering indicator (optional - can be styled/positioned as needed) */}
+            {isBuffering && isVideoSupported && !videoError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 pointer-events-none">
+                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
             )}
         </div>
     );
