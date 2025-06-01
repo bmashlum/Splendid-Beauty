@@ -46,20 +46,20 @@ const AnimatedImage = memo(function AnimatedImage({
         if (typeof window !== 'undefined') {
             const video = document.createElement('video');
             const isVideoTypeSupported = !!(video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || video.canPlayType('video/mp4'));
-            
+
             // Check for low power mode or reduced motion preference
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            
+
             // Set support based on video type support and user preferences
             setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion);
-            
+
             // Check if this video has already been played
             if (playedVideos.has(videoPath)) {
                 setHasVideoPlayedOnce(true);
                 setHasVideoEnded(true);
             }
         }
-        
+
         // Cleanup timeout on unmount
         return () => {
             if (playAttemptTimeoutRef.current) {
@@ -73,54 +73,54 @@ const AnimatedImage = memo(function AnimatedImage({
         if (playAttemptTimeoutRef.current) {
             clearTimeout(playAttemptTimeoutRef.current);
         }
-        
+
         playAttemptTimeoutRef.current = setTimeout(async () => {
             if (videoRef.current && !videoError && !hasVideoEnded && !hasVideoPlayedOnce) {
-            try {
-                // Only reset to beginning if video hasn't started playing yet or has ended
-                if (videoRef.current.currentTime === 0 || videoRef.current.ended) {
-                    videoRef.current.currentTime = 0;
-                }
-                
-                // Try to play and catch any autoplay restrictions
-                const playPromise = videoRef.current.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        // Autoplay started successfully
-                        setIsVideoLoaded(true);
-                        setHasVideoEnded(false);
-                        setIsVideoFading(false);
-                        setIsVideoPaused(false);
-                    }).catch(error => {
-                        // Autoplay was prevented
-                        console.warn('Video autoplay prevented:', error);
-                        
-                        // On mobile, instead of marking as error, just consider it ended
-                        // This will fall back to the static image without error state
-                        setHasVideoEnded(true);
-                        
-                        // Also trigger the onVideoEnded callback for autoplay prevention
-                        if (onVideoEnded) {
-                            onVideoEnded();
-                        }
-                        
-                        // Don't set video error, which would prevent future attempts
-                        // setVideoError(true);
-                        // setCanVideoActuallyPlay(false);
-                    });
-                }
-            } catch (error) {
-                console.warn('Video play attempt failed:', error);
-                // Same fallback as above
-                setHasVideoEnded(true);
-                
-                // Also trigger the onVideoEnded callback
-                if (onVideoEnded) {
-                    onVideoEnded();
+                try {
+                    // Only reset to beginning if video hasn't started playing yet or has ended
+                    if (videoRef.current.currentTime === 0 || videoRef.current.ended) {
+                        videoRef.current.currentTime = 0;
+                    }
+
+                    // Try to play and catch any autoplay restrictions
+                    const playPromise = videoRef.current.play();
+
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            // Autoplay started successfully
+                            setIsVideoLoaded(true);
+                            setHasVideoEnded(false);
+                            setIsVideoFading(false);
+                            setIsVideoPaused(false);
+                        }).catch(error => {
+                            // Autoplay was prevented
+                            console.warn('Video autoplay prevented:', error);
+
+                            // On mobile, instead of marking as error, just consider it ended
+                            // This will fall back to the static image without error state
+                            setHasVideoEnded(true);
+
+                            // Also trigger the onVideoEnded callback for autoplay prevention
+                            if (onVideoEnded) {
+                                onVideoEnded();
+                            }
+
+                            // Don't set video error, which would prevent future attempts
+                            // setVideoError(true);
+                            // setCanVideoActuallyPlay(false);
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Video play attempt failed:', error);
+                    // Same fallback as above
+                    setHasVideoEnded(true);
+
+                    // Also trigger the onVideoEnded callback
+                    if (onVideoEnded) {
+                        onVideoEnded();
+                    }
                 }
             }
-        }
         }, 50); // Small debounce delay
     }, [videoError, hasVideoEnded, hasVideoPlayedOnce, onVideoEnded]);
 
@@ -146,12 +146,21 @@ const AnimatedImage = memo(function AnimatedImage({
 
     const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded;
     const isFadingVideo = isVideoSupported && !videoError && isVideoFading;
+    const showStaticImage = !isVideoSupported || videoError || hasVideoEnded || !canVideoActuallyPlay;
 
     return (
         <div className="relative w-full h-full overflow-hidden">
             {/* Note: xl-object-contain class is defined in global styles */}
             {/* Static Image Layer */}
-            <div className="absolute inset-0">
+            <motion.div
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showStaticImage ? 1 : 0 }}
+                transition={{
+                    duration: 0.3,
+                    ease: "easeInOut"
+                }}
+            >
                 <Image
                     src={imagePath}
                     alt={alt}
@@ -178,7 +187,7 @@ const AnimatedImage = memo(function AnimatedImage({
                         backfaceVisibility: 'hidden',
                     }}
                 />
-            </div>
+            </motion.div>
 
             {/* Video Layer */}
             {isVideoSupported && (
@@ -195,6 +204,16 @@ const AnimatedImage = memo(function AnimatedImage({
                         objectPosition.includes("object-right") ? "object-right" : "",
                         objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
                     )}
+                    style={{
+                        // GPU acceleration and smoothing
+                        transform: 'translateZ(0)',
+                        backfaceVisibility: 'hidden',
+                        perspective: '1000px',
+                        willChange: 'transform',
+                        // Smooth rendering
+                        imageRendering: 'auto',
+                        WebkitFontSmoothing: 'antialiased',
+                    }}
                     playsInline
                     muted
                     autoPlay
@@ -202,7 +221,7 @@ const AnimatedImage = memo(function AnimatedImage({
                     preload="auto"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
-                    transition={{ 
+                    transition={{
                         duration: 0.3,
                         ease: "easeInOut"
                     }}
@@ -210,6 +229,8 @@ const AnimatedImage = memo(function AnimatedImage({
                         setIsVideoTagReady(true);
                         if (videoRef.current?.play) {
                             setCanVideoActuallyPlay(true);
+                            // Speed up the video playback for snappier animation
+                            videoRef.current.playbackRate = 1.0;
                         } else {
                             console.warn("Video element missing play function onLoadedData");
                             setCanVideoActuallyPlay(false);
@@ -225,10 +246,10 @@ const AnimatedImage = memo(function AnimatedImage({
                         setHasVideoEnded(true);
                         setIsVideoFading(true);
                         setHasVideoPlayedOnce(true);
-                        
+
                         // Add this video to the global played videos set
                         playedVideos.add(videoPath);
-                        
+
                         setTimeout(() => {
                             setIsVideoFading(false);
                         }, 300);

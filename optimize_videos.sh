@@ -15,13 +15,16 @@ for video in public/images/*.mp4; do
         filename=$(basename "$video")
         echo "Optimizing $filename..."
         
-        # Use CRF 23 for high quality, medium preset for good compression
+        # Use CRF 18 for very high quality, slow preset for better compression
+        # Added -r 60 for 60fps output and motion interpolation filter
+        # -an removes all audio tracks to save space
         ffmpeg -y -i "$video" \
             -c:v libx264 \
-            -crf 23 \
-            -preset medium \
-            -c:a aac \
-            -b:a 128k \
+            -crf 18 \
+            -preset slow \
+            -r 60 \
+            -vf "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" \
+            -an \
             -movflags +faststart \
             "public/images/optimized/${filename%.*}_optimized.mp4"
             
