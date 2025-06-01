@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
+// Global Set to track which videos have already been played
+const playedVideos = new Set<string>();
+
 interface AnimatedImageProps {
     imagePath: string;
     videoPath: string;
@@ -36,6 +39,7 @@ const AnimatedImage = memo(function AnimatedImage({
     const [canVideoActuallyPlay, setCanVideoActuallyPlay] = useState(false);
     const [isVideoFading, setIsVideoFading] = useState(false);
     const [isVideoPaused, setIsVideoPaused] = useState(false);
+    const [hasVideoPlayedOnce, setHasVideoPlayedOnce] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -47,11 +51,17 @@ const AnimatedImage = memo(function AnimatedImage({
             
             // Set support based on video type support and user preferences
             setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion);
+            
+            // Check if this video has already been played
+            if (playedVideos.has(videoPath)) {
+                setHasVideoPlayedOnce(true);
+                setHasVideoEnded(true);
+            }
         }
-    }, []);
+    }, [videoPath]);
 
     const attemptPlayVideo = useCallback(async () => {
-        if (videoRef.current && !videoError && !hasVideoEnded) {
+        if (videoRef.current && !videoError && !hasVideoEnded && !hasVideoPlayedOnce) {
             try {
                 // Only reset to beginning if video hasn't started playing yet or has ended
                 if (videoRef.current.currentTime === 0 || videoRef.current.ended) {
@@ -97,10 +107,10 @@ const AnimatedImage = memo(function AnimatedImage({
                 }
             }
         }
-    }, [videoError, hasVideoEnded, onVideoEnded]);
+    }, [videoError, hasVideoEnded, hasVideoPlayedOnce, onVideoEnded]);
 
     useEffect(() => {
-        if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded && isVideoSupported && !videoError) {
+        if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded && isVideoSupported && !videoError && !hasVideoPlayedOnce) {
             // Resume if paused, otherwise attempt to play
             if (isVideoPaused && videoRef.current) {
                 videoRef.current.play().then(() => {
@@ -117,7 +127,7 @@ const AnimatedImage = memo(function AnimatedImage({
             videoRef.current.pause();
             setIsVideoPaused(true);
         }
-    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError, isVideoPaused]);
+    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError, isVideoPaused, hasVideoPlayedOnce]);
 
     const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded;
     const isFadingVideo = isVideoSupported && !videoError && isVideoFading;
@@ -196,6 +206,11 @@ const AnimatedImage = memo(function AnimatedImage({
                     onEnded={() => {
                         setHasVideoEnded(true);
                         setIsVideoFading(true);
+                        setHasVideoPlayedOnce(true);
+                        
+                        // Add this video to the global played videos set
+                        playedVideos.add(videoPath);
+                        
                         setTimeout(() => {
                             setIsVideoFading(false);
                         }, 500);
