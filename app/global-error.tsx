@@ -24,7 +24,7 @@ export default function GlobalError({
             Critical Error
           </h2>
           <p style={{ marginBottom: '1.5rem', color: '#666' }}>
-            We're experiencing technical difficulties. Please try refreshing the page.
+            We&apos;re experiencing technical difficulties. Please try refreshing the page.
           </p>
           <button
             onClick={() => reset()}

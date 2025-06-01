@@ -830,8 +830,8 @@ export default function Home() {
       setImagesLoading(true);
       const imagePromises = Object.entries(staticImageImports).map(async ([id, importFn]) => {
         try {
-          const module = await importFn();
-          return { id, image: module.default };
+          const importedModule = await importFn();
+          return { id, image: importedModule.default };
         } catch (error) {
           console.error(`Failed to load image for section ${id}:`, error);
           return { id, image: null };

@@ -528,7 +528,7 @@ export default function AcademyCourses() {
                     
                     {/* What's Included */}
                     <div>
-                      <h3 className="font-semibold text-[#063f48] mb-3">What's Included</h3>
+                      <h3 className="font-semibold text-[#063f48] mb-3">What&apos;s Included</h3>
                       <div className="grid grid-cols-1 gap-2">
                         {course.included.map((item, index) => (
                           <div key={index} className="flex items-start gap-2">

@@ -813,7 +813,7 @@ const BlogContent: React.FC = () => {
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Search Results</h2>
                   <p className="text-gray-600">
-                    Found <span className="font-semibold text-[#C09E6C]">{filteredPosts.length}</span> {filteredPosts.length === 1 ? 'article' : 'articles'} for <span className="font-semibold">"{currentSearchQuery}"</span>
+                    Found <span className="font-semibold text-[#C09E6C]">{filteredPosts.length}</span> {filteredPosts.length === 1 ? 'article' : 'articles'} for <span className="font-semibold">&ldquo;{currentSearchQuery}&rdquo;</span>
                   </p>
                 </div>
                 <motion.button
@@ -852,7 +852,7 @@ const BlogContent: React.FC = () => {
                   <Search className="w-10 h-10 text-gray-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-3">No articles found</h3>
-                <p className="text-gray-500 mb-8">We couldn't find any articles matching your search. Try different keywords or browse all our content.</p>
+                <p className="text-gray-500 mb-8">We couldn&apos;t find any articles matching your search. Try different keywords or browse all our content.</p>
                 <motion.button
                   onClick={() => {
                     setCurrentSearchQuery('');

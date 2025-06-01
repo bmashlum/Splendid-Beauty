@@ -60,7 +60,7 @@ export default function SEOGenerator({ title, content, excerpt, onGenerate }: SE
     const maxLength = 160
     
     // Extract key information from content
-    let description = content
+    const description = content
       .replace(/\n/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
