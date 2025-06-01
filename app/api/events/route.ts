@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { z } from 'zod';
 import { jwtVerify } from 'jose';
+import { getCached } from '@/lib/cache';
 
 // Auth middleware
 async function verifyAuth(request: NextRequest): Promise<boolean> {
@@ -62,38 +63,36 @@ export type Event = z.infer<typeof eventSchema>;
   }
 })();
 
-// In-memory cache for events
-let eventsCache: Event[] | null = null;
-let cacheTimestamp: number = 0;
-const CACHE_DURATION_MS = process.env.NODE_ENV === 'development' ? 0 : 30000; // 30 seconds cache in prod, 0 in dev
-
 // File size and security limits
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 const MAX_IMAGE_DIMENSIONS = 5000;
 
+// Cache configuration
+const CACHE_TTL = process.env.NODE_ENV === 'development' ? 0 : 300; // 5 minutes in production, 0 in dev
+
 async function getEvents(forceRefresh: boolean = false): Promise<Event[]> {
-  const now = Date.now();
-  if (!forceRefresh && eventsCache && (now - cacheTimestamp < CACHE_DURATION_MS)) {
-    return eventsCache;
-  }
-  try {
+  if (forceRefresh || CACHE_TTL === 0) {
     const data = await fs.readFile(EVENTS_FILE, 'utf8');
-    eventsCache = JSON.parse(data) as Event[]; // Add type assertion
-    cacheTimestamp = now;
-    return eventsCache;
-  } catch (error) {
-    console.error('Error reading events file:', error);
-    eventsCache = null; // Invalidate cache
-    return [];
+    return JSON.parse(data) as Event[];
   }
+  
+  return getCached<Event[]>(
+    'events',
+    async () => {
+      const data = await fs.readFile(EVENTS_FILE, 'utf8');
+      return JSON.parse(data) as Event[];
+    },
+    CACHE_TTL
+  );
 }
 
 async function saveEvents(events: Event[]): Promise<void> {
   try {
     await fs.writeFile(EVENTS_FILE, JSON.stringify(events, null, 2));
-    eventsCache = events; // Update cache
-    cacheTimestamp = Date.now();
+    // Invalidate cache when saving
+    const cache = (await import('@/lib/cache')).getCache();
+    await cache.delete('events');
   } catch (error) {
     console.error('Error writing events file:', error);
     throw new Error('Failed to save events');

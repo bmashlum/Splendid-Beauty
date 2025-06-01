@@ -21,12 +21,28 @@ import { getSectionConfig } from '@/lib/constants'
 
 // --- Component Imports ---
 import Navbar from '@/components/navbar'
-import EventsSection from '@/components/EventsSection'
 import AnimatedImage from '@/components/AnimatedImage'
-import ServiceHoverPoints from '@/components/ServiceHoverPoints'
-import AcademyCourses from '@/components/AcademyCourses'
-import FloatingChatWidget from '@/components/FloatingChatWidget'
 import SEOHeadings from '@/components/SEOHeadings'
+
+// --- Lazy loaded components for better performance ---
+const EventsSection = dynamic(() => import('@/components/EventsSection'), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-100" />,
+  ssr: true
+})
+
+const ServiceHoverPoints = dynamic(() => import('@/components/ServiceHoverPoints'), {
+  loading: () => null,
+  ssr: true
+})
+
+const AcademyCourses = dynamic(() => import('@/components/AcademyCourses'), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-100" />,
+  ssr: true
+})
+
+const FloatingChatWidget = dynamic(() => import('@/components/FloatingChatWidget'), {
+  ssr: false // Client-only component
+})
 
 // Create motion components after all imports
 const MotionSection = motion.section
@@ -542,7 +558,7 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
       id={id}
       className={sectionClasses}
     >
-      <SEOHeadings sectionId={id} />
+      <SEOHeadings />
       <div className="relative w-full h-full">
         {sectionConfig ? (
           <AnimatedImage

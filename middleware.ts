@@ -16,7 +16,11 @@ export async function middleware(request: NextRequest) {
 
     try {
       // Verify the token
-      const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
+      const JWT_SECRET = process.env.JWT_SECRET;
+      if (!JWT_SECRET) {
+        console.error('JWT_SECRET is not configured');
+        return NextResponse.redirect(new URL('/admin/login', request.url));
+      }
       const secret = new TextEncoder().encode(JWT_SECRET);
       await jwtVerify(token, secret);
 

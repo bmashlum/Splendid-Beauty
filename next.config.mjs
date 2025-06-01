@@ -1,11 +1,19 @@
 // next.config.mjs
+import bundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true,
+    // During development, we'll show warnings but not fail the build
+    ignoreDuringBuilds: process.env.NODE_ENV === 'development',
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // During development, we'll show errors but not fail the build
+    ignoreBuildErrors: process.env.NODE_ENV === 'development',
   },
   // Improve Core Web Vitals
   poweredByHeader: false,
@@ -157,4 +165,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

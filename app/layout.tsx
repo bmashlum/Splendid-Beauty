@@ -5,6 +5,7 @@ import Script from 'next/script'
 import '@/app/globals.css'
 
 import { ThemeProvider } from '@/components/theme-provider'
+import { WebVitals } from './_components/WebVitals'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -205,6 +206,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           disableTransitionOnChange
           storageKey="splendid-beauty-theme"
         >
+          <WebVitals />
           <main className="flex-grow">
             {children}
           </main>

@@ -58,6 +58,14 @@ export default function AdminLayout({
               Manage Blog
             </Link>
             <Link 
+              href="/admin/performance" 
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                pathname === '/admin/performance' ? 'bg-[#0a5561] text-white' : 'text-gray-100 hover:bg-[#0a5561]'
+              }`}
+            >
+              Performance
+            </Link>
+            <Link 
               href="/" 
               className="px-3 py-2 rounded-md text-sm font-medium text-gray-100 hover:bg-[#0a5561]"
             >
