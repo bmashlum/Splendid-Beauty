@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { z } from 'zod';
 import { jwtVerify } from 'jose';
-import { getCached } from '@/lib/cache';
+import { getStorageInstance } from '@/lib/vercel-kv-storage';
 
 // Auth middleware
 async function verifyAuth(request: NextRequest): Promise<boolean> {
@@ -49,53 +49,45 @@ const blogPostSchema = z.object({
 
 export type BlogPost = z.infer<typeof blogPostSchema>;
 
-// Ensure directories exist (run once on server start)
-(async () => {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.mkdir(IMAGES_DIR, { recursive: true });
+// Ensure directories exist only in development
+if (process.env.NODE_ENV === 'development') {
+  (async () => {
     try {
-      await fs.access(BLOG_FILE);
-    } catch {
-      await fs.writeFile(BLOG_FILE, JSON.stringify([], null, 2));
+      await fs.mkdir(DATA_DIR, { recursive: true });
+      await fs.mkdir(IMAGES_DIR, { recursive: true });
+      try {
+        await fs.access(BLOG_FILE);
+      } catch {
+        await fs.writeFile(BLOG_FILE, JSON.stringify([], null, 2));
+      }
+    } catch (error) {
+      console.error("Failed to initialize data directories or blog file:", error);
     }
-  } catch (error) {
-    console.error("Failed to initialize data directories or blog file:", error);
-  }
-})();
+  })();
+}
+
+// Get storage instance
+const storage = getStorageInstance();
 
 // File size limits
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
-// Cache configuration
-const CACHE_TTL = process.env.NODE_ENV === 'development' ? 0 : 300; // 5 minutes in production, 0 in dev
-
-async function getBlogPosts(forceRefresh: boolean = false): Promise<BlogPost[]> {
-  if (forceRefresh || CACHE_TTL === 0) {
-    const data = await fs.readFile(BLOG_FILE, 'utf8');
-    return JSON.parse(data) as BlogPost[];
+async function getBlogPosts(): Promise<BlogPost[]> {
+  try {
+    return await storage.getBlogPosts();
+  } catch (error) {
+    console.error('Error getting blog posts:', error);
+    return [];
   }
-  
-  return getCached<BlogPost[]>(
-    'blog-posts',
-    async () => {
-      const data = await fs.readFile(BLOG_FILE, 'utf8');
-      return JSON.parse(data) as BlogPost[];
-    },
-    CACHE_TTL
-  );
 }
 
 async function saveBlogPosts(posts: BlogPost[]): Promise<void> {
   try {
-    await fs.writeFile(BLOG_FILE, JSON.stringify(posts, null, 2));
-    // Invalidate cache when saving
-    const cache = (await import('@/lib/cache')).getCache();
-    await cache.delete('blog-posts');
+    await storage.saveBlogPosts(posts);
   } catch (error) {
-    console.error('Error writing blog posts file:', error);
-    throw new Error('Failed to save blog posts'); // Propagate error
+    console.error('Error saving blog posts:', error);
+    throw new Error('Failed to save blog posts');
   }
 }
 
@@ -111,11 +103,6 @@ function generateSlug(title: string): string {
 }
 
 async function processAndSaveImage(imageBuffer: Buffer, fileNameBase: string): Promise<string> {
-  // Sanitize filename
-  const sanitizedBase = fileNameBase.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 50);
-  const uniqueFileName = `${sanitizedBase}-${Date.now()}.webp`;
-  const filePath = path.join(IMAGES_DIR, uniqueFileName);
-  
   try {
     // Process image with security in mind
     const metadata = await sharp(imageBuffer).metadata();
@@ -124,6 +111,22 @@ async function processAndSaveImage(imageBuffer: Buffer, fileNameBase: string): P
     if (!metadata.width || !metadata.height || metadata.width > 5000 || metadata.height > 5000) {
       throw new Error('Invalid image dimensions');
     }
+    
+    // In production (Vercel), convert to base64 data URL
+    if (process.env.VERCEL) {
+      const processedBuffer = await sharp(imageBuffer)
+        .resize({ width: 1200, height: 800, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 85 })
+        .toBuffer();
+      
+      const base64 = processedBuffer.toString('base64');
+      return `data:image/webp;base64,${base64}`;
+    }
+    
+    // In development, save to file system
+    const sanitizedBase = fileNameBase.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 50);
+    const uniqueFileName = `${sanitizedBase}-${Date.now()}.webp`;
+    const filePath = path.join(IMAGES_DIR, uniqueFileName);
     
     await sharp(imageBuffer)
       .resize({ width: 1200, height: 800, fit: 'inside', withoutEnlargement: true })
@@ -240,7 +243,7 @@ export async function POST(request: NextRequest) {
     // Validate with Zod before saving (optional, but good practice)
     // blogPostSchema.parse(newPost); 
 
-    const posts = await getBlogPosts(true); // Force refresh before adding
+    const posts = await getBlogPosts();
     posts.push(newPost);
     await saveBlogPosts(posts);
     
@@ -269,7 +272,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
     }
 
-    const posts = await getBlogPosts(true); // Force refresh
+    const posts = await getBlogPosts();
     const postIndex = posts.findIndex(post => post.id === id);
 
     if (postIndex === -1) {
@@ -368,7 +371,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Blog post ID is required' }, { status: 400 });
     }
 
-    const posts = await getBlogPosts(true); // Force refresh
+    const posts = await getBlogPosts();
     const postIndex = posts.findIndex(post => post.id === id);
 
     if (postIndex === -1) {
@@ -376,7 +379,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const postToDelete = posts[postIndex];
-    if (postToDelete.featuredImage && postToDelete.featuredImage.startsWith('/uploads/blog/')) {
+    // Only try to delete files in development (not on Vercel)
+    if (!process.env.VERCEL && postToDelete.featuredImage && postToDelete.featuredImage.startsWith('/uploads/blog/')) {
       const imagePath = path.join(process.cwd(), 'public', postToDelete.featuredImage);
       try {
         await fs.unlink(imagePath);

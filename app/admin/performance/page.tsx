@@ -21,6 +21,7 @@ interface HealthData {
     filesystem: boolean
     cache: boolean
     environment: boolean
+    storage: boolean
     memory: {
       used: number
       limit: number
@@ -186,6 +187,14 @@ export default function PerformanceDashboard() {
                   <div className="flex items-center justify-between">
                     <span>Environment</span>
                     {healthData.checks.environment ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Storage</span>
+                    {healthData.checks.storage ? (
                       <CheckCircle className="w-4 h-4 text-green-500" />
                     ) : (
                       <XCircle className="w-4 h-4 text-red-500" />

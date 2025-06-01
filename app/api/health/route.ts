@@ -4,6 +4,7 @@ import path from 'path'
 import { checkServiceConfiguration } from '@/lib/env'
 import { getCache } from '@/lib/cache'
 import { errorLogger } from '@/lib/error-logger'
+import { getStorageInstance } from '@/lib/vercel-kv-storage'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'unhealthy'
@@ -13,6 +14,7 @@ interface HealthCheck {
     filesystem: boolean
     cache: boolean
     environment: boolean
+    storage: boolean
     memory: {
       used: number
       limit: number
@@ -71,6 +73,21 @@ async function checkCache(): Promise<boolean> {
   }
 }
 
+async function checkStorage(): Promise<boolean> {
+  try {
+    const storage = getStorageInstance()
+    
+    // Test reading (should work even if empty)
+    await storage.getBlogPosts()
+    await storage.getEvents()
+    
+    return true
+  } catch (error) {
+    console.error('Storage check failed:', error)
+    return false
+  }
+}
+
 function getMemoryUsage() {
   const used = process.memoryUsage()
   const limit = 512 * 1024 * 1024 // 512MB default for Node.js
@@ -87,9 +104,10 @@ export async function GET() {
   
   try {
     // Run health checks
-    const [filesystemOk, cacheOk] = await Promise.all([
+    const [filesystemOk, cacheOk, storageOk] = await Promise.all([
       checkFilesystem(),
-      checkCache()
+      checkCache(),
+      checkStorage()
     ])
     
     const { services } = checkServiceConfiguration()
@@ -98,6 +116,7 @@ export async function GET() {
     // Collect any errors
     if (!filesystemOk) errors.push('Filesystem check failed')
     if (!cacheOk) errors.push('Cache check failed')
+    if (!storageOk) errors.push('Storage check failed')
     if (!services.auth) errors.push('Auth not properly configured')
     if (memory.percentage > 90) errors.push('High memory usage')
     
@@ -121,6 +140,7 @@ export async function GET() {
         filesystem: filesystemOk,
         cache: cacheOk,
         environment: services.auth,
+        storage: storageOk,
         memory
       },
       services,

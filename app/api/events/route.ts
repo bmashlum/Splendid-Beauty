@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { z } from 'zod';
 import { jwtVerify } from 'jose';
-import { getCached } from '@/lib/cache';
+import { getStorageInstance } from '@/lib/vercel-kv-storage';
 
 // Auth middleware
 async function verifyAuth(request: NextRequest): Promise<boolean> {
@@ -48,53 +48,45 @@ const eventSchema = z.object({
 
 export type Event = z.infer<typeof eventSchema>;
 
-// Ensure directories exist (run once on server start)
-(async () => {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.mkdir(IMAGES_DIR, { recursive: true });
+// Ensure directories exist only in development
+if (process.env.NODE_ENV === 'development') {
+  (async () => {
     try {
-      await fs.access(EVENTS_FILE);
-    } catch {
-      await fs.writeFile(EVENTS_FILE, JSON.stringify([], null, 2));
+      await fs.mkdir(DATA_DIR, { recursive: true });
+      await fs.mkdir(IMAGES_DIR, { recursive: true });
+      try {
+        await fs.access(EVENTS_FILE);
+      } catch {
+        await fs.writeFile(EVENTS_FILE, JSON.stringify([], null, 2));
+      }
+    } catch (error) {
+      console.error("Failed to initialize data directories or events file:", error);
     }
-  } catch (error) {
-    console.error("Failed to initialize data directories or events file:", error);
-  }
-})();
+  })();
+}
+
+// Get storage instance
+const storage = getStorageInstance();
 
 // File size and security limits
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 const MAX_IMAGE_DIMENSIONS = 5000;
 
-// Cache configuration
-const CACHE_TTL = process.env.NODE_ENV === 'development' ? 0 : 300; // 5 minutes in production, 0 in dev
-
-async function getEvents(forceRefresh: boolean = false): Promise<Event[]> {
-  if (forceRefresh || CACHE_TTL === 0) {
-    const data = await fs.readFile(EVENTS_FILE, 'utf8');
-    return JSON.parse(data) as Event[];
+async function getEvents(): Promise<Event[]> {
+  try {
+    return await storage.getEvents();
+  } catch (error) {
+    console.error('Error getting events:', error);
+    return [];
   }
-  
-  return getCached<Event[]>(
-    'events',
-    async () => {
-      const data = await fs.readFile(EVENTS_FILE, 'utf8');
-      return JSON.parse(data) as Event[];
-    },
-    CACHE_TTL
-  );
 }
 
 async function saveEvents(events: Event[]): Promise<void> {
   try {
-    await fs.writeFile(EVENTS_FILE, JSON.stringify(events, null, 2));
-    // Invalidate cache when saving
-    const cache = (await import('@/lib/cache')).getCache();
-    await cache.delete('events');
+    await storage.saveEvents(events);
   } catch (error) {
-    console.error('Error writing events file:', error);
+    console.error('Error saving events:', error);
     throw new Error('Failed to save events');
   }
 }
@@ -110,9 +102,6 @@ function generateSafeFileNameBase(title: string): string {
 }
 
 async function processAndSaveImage(imageBuffer: Buffer, fileNameBase: string): Promise<string> {
-  const uniqueFileName = `${fileNameBase}-${Date.now()}.webp`;
-  const filePath = path.join(IMAGES_DIR, uniqueFileName);
-
   try {
     // Validate image before processing
     const metadata = await sharp(imageBuffer).metadata();
@@ -122,6 +111,26 @@ async function processAndSaveImage(imageBuffer: Buffer, fileNameBase: string): P
         metadata.height > MAX_IMAGE_DIMENSIONS) {
       throw new Error('Invalid image dimensions');
     }
+    
+    // In production (Vercel), convert to base64 data URL
+    if (process.env.VERCEL) {
+      const processedBuffer = await sharp(imageBuffer)
+        .resize({
+          width: OPTIMAL_WIDTH,
+          height: OPTIMAL_HEIGHT,
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .webp({ quality: 85 })
+        .toBuffer();
+      
+      const base64 = processedBuffer.toString('base64');
+      return `data:image/webp;base64,${base64}`;
+    }
+    
+    // In development, save to file system
+    const uniqueFileName = `${fileNameBase}-${Date.now()}.webp`;
+    const filePath = path.join(IMAGES_DIR, uniqueFileName);
     
     // Resize to fit within OPTIMAL_WIDTH x OPTIMAL_HEIGHT, maintaining aspect ratio
     await sharp(imageBuffer)
@@ -220,7 +229,7 @@ export async function POST(request: NextRequest) {
 
     // eventSchema.parse(newEvent); // Validate with Zod
 
-    const events = await getEvents(true);
+    const events = await getEvents();
     events.push(newEvent);
     await saveEvents(events);
 
@@ -249,7 +258,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
 
-    const events = await getEvents(true);
+    const events = await getEvents();
     const eventIndex = events.findIndex(event => event.id === id);
 
     if (eventIndex === -1) {
@@ -345,7 +354,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
 
-    const events = await getEvents(true);
+    const events = await getEvents();
     const eventIndex = events.findIndex(event => event.id === id);
 
     if (eventIndex === -1) {
@@ -353,7 +362,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const eventToDelete = events[eventIndex];
-    if (eventToDelete.imageSrc && eventToDelete.imageSrc.startsWith('/uploads/events/')) {
+    // Only try to delete files in development (not on Vercel)
+    if (!process.env.VERCEL && eventToDelete.imageSrc && eventToDelete.imageSrc.startsWith('/uploads/events/')) {
       const imagePath = path.join(process.cwd(), 'public', eventToDelete.imageSrc);
       try {
         await fs.unlink(imagePath);
