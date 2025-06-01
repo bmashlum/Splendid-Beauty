@@ -35,6 +35,7 @@ const AnimatedImage = memo(function AnimatedImage({
     const [isVideoTagReady, setIsVideoTagReady] = useState(false);
     const [canVideoActuallyPlay, setCanVideoActuallyPlay] = useState(false);
     const [isVideoFading, setIsVideoFading] = useState(false);
+    const [isVideoPaused, setIsVideoPaused] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -50,9 +51,13 @@ const AnimatedImage = memo(function AnimatedImage({
     }, []);
 
     const attemptPlayVideo = useCallback(async () => {
-        if (videoRef.current && !videoError) {
+        if (videoRef.current && !videoError && !hasVideoEnded) {
             try {
-                videoRef.current.currentTime = 0;
+                // Only reset to beginning if video hasn't started playing yet or has ended
+                if (videoRef.current.currentTime === 0 || videoRef.current.ended) {
+                    videoRef.current.currentTime = 0;
+                }
+                
                 // Try to play and catch any autoplay restrictions
                 const playPromise = videoRef.current.play();
                 
@@ -62,6 +67,7 @@ const AnimatedImage = memo(function AnimatedImage({
                         setIsVideoLoaded(true);
                         setHasVideoEnded(false);
                         setIsVideoFading(false);
+                        setIsVideoPaused(false);
                     }).catch(error => {
                         // Autoplay was prevented
                         console.warn('Video autoplay prevented:', error);
@@ -91,15 +97,27 @@ const AnimatedImage = memo(function AnimatedImage({
                 }
             }
         }
-    }, [videoError]);
+    }, [videoError, hasVideoEnded, onVideoEnded]);
 
     useEffect(() => {
         if (isInView && isVideoTagReady && canVideoActuallyPlay && !hasVideoEnded && isVideoSupported && !videoError) {
-            attemptPlayVideo();
-        } else if (!isInView && videoRef.current && !videoRef.current.paused) {
+            // Resume if paused, otherwise attempt to play
+            if (isVideoPaused && videoRef.current) {
+                videoRef.current.play().then(() => {
+                    setIsVideoPaused(false);
+                }).catch(() => {
+                    // If resume fails, try from the beginning
+                    attemptPlayVideo();
+                });
+            } else {
+                attemptPlayVideo();
+            }
+        } else if (!isInView && videoRef.current && !videoRef.current.paused && !hasVideoEnded) {
+            // Only pause if video is still playing and hasn't ended
             videoRef.current.pause();
+            setIsVideoPaused(true);
         }
-    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError]);
+    }, [isInView, isVideoTagReady, canVideoActuallyPlay, hasVideoEnded, attemptPlayVideo, isVideoSupported, videoError, isVideoPaused]);
 
     const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded;
     const isFadingVideo = isVideoSupported && !videoError && isVideoFading;
@@ -191,6 +209,14 @@ const AnimatedImage = memo(function AnimatedImage({
                         setVideoError(true);
                         setCanVideoActuallyPlay(false);
                         setIsVideoFading(false);
+                    }}
+                    onStalled={() => {
+                        console.warn(`Video stalled: ${videoPath}`);
+                        // Don't immediately fail, browser might recover
+                    }}
+                    onWaiting={() => {
+                        console.warn(`Video buffering: ${videoPath}`);
+                        // Video is buffering, this is normal
                     }}
                     src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
                     crossOrigin="anonymous"
