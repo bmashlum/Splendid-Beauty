@@ -130,6 +130,23 @@
     height: 100%;
     overflow: auto;
     /* Changed from hidden to auto to allow scrolling */
+    
+    /* Smooth scrolling with better performance */
+    scroll-padding-top: 80px; /* Account for fixed headers if any */
+  }
+  
+  /* Enhanced smooth scrolling for supported browsers */
+  @supports (scroll-behavior: smooth) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  
+  /* Smooth scrolling with reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 
   /* Ensure Next Image fill works correctly */
