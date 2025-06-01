@@ -1,6 +1,27 @@
-# Allow all web crawlers
+# Robots.txt for Splendid Beauty Bar & Co.
+# https://splendidbeautybar.com
+
+# Allow all search engines
 User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /hover-test/
+Disallow: /responsive-demo/
+Disallow: /video-test/
+
+# Allow specific bots full access
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
 Allow: /
 
 # Sitemap location
 Sitemap: https://splendidbeautybar.com/sitemap.xml
+
+# Crawl delay (optional, in seconds)
+# Crawl-delay: 1

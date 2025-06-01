@@ -4,7 +4,7 @@ export const useSmoothScroll = () => {
   const scrollVelocity = useRef(0);
   const targetScroll = useRef(0);
   const currentScroll = useRef(0);
-  const rafId = useRef<number>();
+  const rafId = useRef<number>(0);
   const isScrolling = useRef(false);
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { zIndex } from '@/lib/z-index'
 
 interface Question {
   id: string
@@ -192,25 +193,32 @@ export default function FloatingChatWidget() {
     <>
       {/* Floating Button */}
       <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1, type: 'spring', stiffness: 260, damping: 20 }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ 
+          delay: 0.8, 
+          type: 'spring', 
+          stiffness: 200, 
+          damping: 15,
+          opacity: { duration: 0.3 }
+        }}
         onClick={() => {
           setIsOpen(true)
           setHasInteracted(true)
         }}
         className={cn(
-          "fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-[#063f48] text-white shadow-lg",
+          "fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#063f48] text-white shadow-lg",
           "hover:bg-[#05535e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]",
           "flex items-center justify-center transition-all duration-200",
           !isOpen && "hover:scale-110"
         )}
         aria-label="Open help chat"
+        style={{ zIndex: zIndex.floatingChatButton }}
       >
-        <MessageCircle className="w-6 h-6" />
+        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
         {!hasInteracted && (
           <span className="absolute flex h-3 w-3 -top-1 -right-1">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" style={{ animationDuration: '1.5s' }}></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
           </span>
         )}
@@ -221,17 +229,23 @@ export default function FloatingChatWidget() {
         {isOpen && (
           <motion.div
             ref={chatRef}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ 
+              type: 'spring', 
+              stiffness: 300, 
+              damping: 25,
+              duration: 0.3
+            }}
             className={cn(
-              "fixed z-50 bg-white rounded-lg shadow-2xl overflow-hidden",
-              "bottom-24 right-6",
+              "fixed bg-white rounded-lg shadow-2xl overflow-hidden",
+              "bottom-20 right-4 sm:bottom-24 sm:right-6",
               "w-[90vw] max-w-[380px]",
-              "h-[70vh] max-h-[600px]",
+              "h-[85vh] sm:h-[75vh] md:h-[70vh] max-h-[600px]",
               "flex flex-col"
             )}
+            style={{ zIndex: zIndex.floatingChatWidget }}
           >
             {/* Header */}
             <div className="bg-[#063f48] text-white p-4 flex items-center justify-between">
@@ -287,14 +301,14 @@ export default function FloatingChatWidget() {
               ) : (
                 <>
                   {/* Category Filter */}
-                  <div className="p-4 border-b bg-gray-50">
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  <div className="p-3 sm:p-4 border-b bg-gray-50">
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
                       {categories.map(category => (
                         <button
                           key={category}
                           onClick={() => setSelectedCategory(category)}
                           className={cn(
-                            "px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-all",
+                            "px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all flex-shrink-0",
                             selectedCategory === category
                               ? "bg-[#063f48] text-white"
                               : "bg-white text-gray-700 hover:bg-gray-200"

@@ -1,6 +1,7 @@
 'use client'
 
-import React, {
+import * as React from 'react'
+import {
   Suspense,
   useState,
   useRef,
@@ -25,6 +26,10 @@ import AnimatedImage from '@/components/AnimatedImage'
 import ServiceHoverPoints from '@/components/ServiceHoverPoints'
 import AcademyCourses from '@/components/AcademyCourses'
 import FloatingChatWidget from '@/components/FloatingChatWidget'
+import SEOHeadings from '@/components/SEOHeadings'
+
+// Create motion components after all imports
+const MotionSection = motion.section
 
 // --- Schema Imports ---
 const SEOSchema = dynamic(() => import('@/components/schema/SEOSchema'), { 
@@ -118,6 +123,12 @@ const FACEBOOK_PAGE_URL = "https://www.facebook.com/splendidbeautybarandco";
 const INSTAGRAM_PAGE_URL = "https://www.instagram.com/splendidbeautybarandco/";
 const BOOKING_URL = "https://dashboard.boulevard.io/booking/businesses/18e96cd8-7ca6-4e7e-8282-2055f45efbc4/widget#/visit-type";
 const YOUTUBE_VIDEO_ID = "DfVi23EdsxM";
+
+// Z-index configuration for layering
+const zIndex = {
+  modal: 50,
+  overlayButtons: 10
+};
 
 // --- Error Boundary ---
 interface ErrorBoundaryProps {
@@ -234,7 +245,7 @@ type SectionData = {
 
 const sectionsData: SectionData[] = [
   // Adjusted connect objectPosition slightly for default/XL
-  { id: 'hero', objectPosition: 'object-[center_top_15%] sm:object-center' }, // Shift image down 15% on mobile
+  { id: 'hero', objectPosition: 'object-center' }, // Centered on all screen sizes
   { id: 'events', content: <EventsSection /> },
   { id: 'about-us', objectPosition: 'object-center' },
   { id: 'award-1', objectPosition: 'object-center', overlay: 'video' },
@@ -284,7 +295,7 @@ interface SectionProps {
   onContactClick: () => void;
 }
 
-const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onSocialClick, loadedImages, onBookingClick, onGiftCardClick, onContactClick }) => {
+const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick, loadedImages, onBookingClick, onGiftCardClick, onContactClick }) => {
   const { id, overlay, isSpacer, heightClass, content, objectPosition = 'object-center' } = section;
   const sectionRef = useRef<HTMLElement>(null);
   const isSectionInViewForAnimation = useInView(sectionRef, { once: true, amount: 0.05 });
@@ -342,7 +353,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
 
 
   if (content) {
-    return <section ref={sectionRef as React.RefObject<HTMLElement>} id={id} className="w-full my-4 sm:my-6 md:my-8">{content}</section>;
+    return <section ref={sectionRef} id={id} className="w-full my-4 sm:my-6 md:my-8">{content}</section>;
   }
   if (isSpacer) {
     return <div className={cn('w-full', heightClass || 'h-10 sm:h-16')} />;
@@ -356,10 +367,9 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
     'relative w-full overflow-hidden', // Common base classes
     isHero
       ? [
-          'mt-28 sm:mt-20 md:mt-20 lg:mt-6', // Even more top margin on mobile
-          'aspect-[16/10] sm:aspect-video md:h-[70vh] xl:h-screen xl:w-full', // Different aspect ratio on mobile
-          'my-0 sm:my-0 md:my-0', // No additional vertical margins for hero
-          'pt-12 sm:pt-0' // Additional padding at the top for mobile
+          'mt-20 sm:mt-16 md:mt-16 lg:mt-6', // Reduced top margin on mobile
+          'aspect-[16/11] sm:aspect-video md:h-[70vh] xl:h-screen xl:w-full', // Better mobile aspect ratio
+          'my-0 sm:my-0 md:my-0' // No additional vertical margins for hero
         ]
       : [ // Other sections:
           'my-1 sm:my-4 lg:my-6', // Margins for non-hero sections
@@ -376,8 +386,8 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
   // --- Connect Overlay ---
   if (overlay === 'connect') {
     return (
-      <motion.section
-        ref={sectionRef as React.RefObject<HTMLElement>}
+      <MotionSection
+        ref={sectionRef}
         id={id}
         className={sectionClasses}
         variants={sectionVariants}
@@ -430,7 +440,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           )}
           {/* Modal for mobile/tablet */}
           <Dialog open={isConnectFabExpanded} onClose={() => setIsConnectFabExpanded(false)} className="xl:hidden">
-            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center" style={{ zIndex: zIndex.modal }}>
               <Dialog.Panel className="w-full max-w-md mx-auto bg-white rounded-t-2xl sm:rounded-2xl p-4 pb-6 shadow-2xl relative">
                 <button
                   type="button"
@@ -502,10 +512,12 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
                   },
                   {
                     href: "https://blvd.me/splendid-beauty-bar/gift-cards", label: "Gift Card", IconSvg: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6 text-white mx-auto"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8H3m18 4H3m-1 0h20a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1zm10-4V4a2 2 0 00-2-2 2 2 0 00-2 2 2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 00-2-2 2 2 0 00-2 2v4"/></svg>                    )
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6 text-white mx-auto"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8H3m18 4H3m-1 0h20a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1zm10-4V4a2 2 0 00-2-2 2 2 0 00-2 2 2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 00-2-2 2 2 0 00-2 2v4"/></svg>
+                    )
                   }
                 ].map(social => (
-                  <a key={social.label} href={social.href} onClick={(e) => onSocialClick(e, social.href)} target="_blank" rel="noopener noreferrer" className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#063f48] transition-transform duration-200 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400" aria-label={social.label}>                    {social.IconSvg}
+                  <a key={social.label} href={social.href} onClick={(e) => onSocialClick(e, social.href)} target="_blank" rel="noopener noreferrer" className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#063f48] transition-transform duration-200 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400" aria-label={social.label}>
+                    {social.IconSvg}
                   </a>
                 ))}
               </div>
@@ -519,19 +531,18 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
             </div>
           </div>
         </motion.div>
-      </motion.section>
+      </MotionSection>
     );
   }
 
+  // Default section rendering
   return (
-    <motion.section
-      ref={sectionRef as React.RefObject<HTMLElement>}
+    <section
+      ref={sectionRef}
       id={id}
       className={sectionClasses}
-      variants={sectionVariants}
-      initial="initial"
-      animate={isSectionInViewForAnimation ? "animate" : "initial"}
     >
+      <SEOHeadings sectionId={id} />
       <div className="relative w-full h-full">
         {sectionConfig ? (
           <AnimatedImage
@@ -627,7 +638,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
       {overlay === 'bookbutton' && isClient && (
         <>
           {/* Desktop buttons with fixed positioning (original) */}
-          <div className="absolute inset-0 z-50 pointer-events-auto xl:pointer-events-auto hidden xl:block"> {/* Hide below XL */}
+          <div className="absolute inset-0 pointer-events-auto xl:pointer-events-auto hidden xl:block" style={{ zIndex: zIndex.overlayButtons }}> {/* Hide below XL */}
             <div style={{ position: 'absolute', left: buttonPositions.bookAppointment.x, top: buttonPositions.bookAppointment.y, transform: 'translate(-50%, -50%)', zIndex: 100 }}>
               <button onClick={onBookingClick} className="px-8 py-2 bg-transparent text-transparent text-lg font-bold rounded border-transparent hover:bg-transparent/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48]" style={{ width: "292px", height: "57px", opacity: 0 }} aria-label="Book an appointment">
                 Book Your Appointment
@@ -645,20 +656,16 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
             </div>
           </div>
 
-          {/* Mobile buttons at same positions with responsive sizing */}
-          <div className="absolute inset-0 z-50 pointer-events-auto xl:hidden">
-            {/* Book Appointment Button - Responsive sizing based on viewport */}
-            <div className="absolute left-1/4 top-[64%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
+          {/* Mobile buttons with improved responsive positioning */}
+          <div className="absolute inset-0 pointer-events-auto xl:hidden" style={{ zIndex: zIndex.overlayButtons }}>
+            {/* Book Appointment Button - Better mobile positioning */}
+            <div className="absolute left-[26%] top-[63%] transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
               <button 
                 onClick={onBookingClick} 
-                className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                className="bg-transparent text-transparent rounded-lg border-transparent hover:bg-black/10 active:bg-black/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
                 style={{ 
-                  width: "calc(40vw)", 
-                  height: "calc(8vw)",
-                  maxWidth: "292px",
-                  maxHeight: "57px",
-                  minWidth: "120px",
-                  minHeight: "30px"
+                  width: "clamp(100px, 35vw, 200px)", 
+                  height: "clamp(35px, 7vw, 50px)"
                 }} 
                 aria-label="Book an appointment"
               >
@@ -666,18 +673,14 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
               </button>
             </div>
             
-            {/* Chat With A Professional Button - Responsive sizing based on viewport */}
-            <div className="absolute left-3/4 top-[64%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
+            {/* Chat With A Professional Button - Better mobile positioning */}
+            <div className="absolute left-[74%] top-[63%] transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
               <button 
                 onClick={onContactClick} 
-                className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                className="bg-transparent text-transparent rounded-lg border-transparent hover:bg-black/10 active:bg-black/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
                 style={{ 
-                  width: "calc(40vw)", 
-                  height: "calc(8vw)",
-                  maxWidth: "292px",
-                  maxHeight: "57px",
-                  minWidth: "120px",
-                  minHeight: "30px"
+                  width: "clamp(100px, 35vw, 200px)", 
+                  height: "clamp(35px, 7vw, 50px)"
                 }} 
                 aria-label="Contact us"
               >
@@ -685,18 +688,14 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
               </button>
             </div>
             
-            {/* Gift Certificate Button - Responsive sizing based on viewport */}
-            <div className="absolute left-1/2 top-[79%] transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto">
+            {/* Gift Certificate Button - Better mobile positioning */}
+            <div className="absolute left-1/2 top-[77%] transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
               <button 
                 onClick={onGiftCardClick} 
-                className="bg-transparent text-transparent rounded-full border-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                className="bg-transparent text-transparent rounded-lg border-transparent hover:bg-black/10 active:bg-black/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
                 style={{ 
-                  width: "calc(40vw)", 
-                  height: "calc(8vw)",
-                  maxWidth: "292px",
-                  maxHeight: "57px",
-                  minWidth: "120px",
-                  minHeight: "30px"
+                  width: "clamp(100px, 35vw, 200px)", 
+                  height: "clamp(35px, 7vw, 50px)"
                 }} 
                 aria-label="Buy gift cards"
               >
@@ -713,7 +712,8 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           {/* Desktop button (original) */}
           <button
             onClick={onContactClick}
-            className="contact-btn hidden xl:block absolute left-[78%] top-[83%] transform -translate-y-1/2 z-50 px-10 py-10 bg-white/90 backdrop-blur-sm text-[#063f48] text-lg font-bold rounded-full shadow-xl hover:bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer opacity-0"
+            className="contact-btn hidden xl:block absolute left-[78%] top-[83%] transform -translate-y-1/2 px-10 py-10 bg-white/90 backdrop-blur-sm text-[#063f48] text-lg font-bold rounded-full shadow-xl hover:bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer opacity-0"
+            style={{ zIndex: zIndex.overlayButtons }}
             aria-label="Contact us for hair studio"
           >
             Contact Us
@@ -722,7 +722,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           {/* Mobile button at same position with responsive sizing */}
           <button
             onClick={onContactClick}
-            className="xl:hidden absolute left-[78%] top-[83%] transform -translate-y-1/2 -translate-x-1/2 z-50 bg-transparent text-transparent rounded-full hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer pointer-events-auto"
+            className="xl:hidden absolute left-[78%] top-[83%] transform -translate-y-1/2 -translate-x-1/2 bg-transparent text-transparent rounded-full hover:bg-transparent/20 active:bg-transparent/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer pointer-events-auto"
             aria-label="Contact us for hair studio"
             style={{ 
               width: "calc(40vw)", 
@@ -754,7 +754,7 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           
           {/* Mobile button positioned exactly like the desktop version for Financing - smaller and lower */}
           <div className="absolute inset-0 xl:hidden">
-            <div className="absolute bottom-[17%] left-1/2 transform translate-x-[-50%] z-50">
+            <div className="absolute bottom-[17%] left-1/2 transform translate-x-[-50%]" style={{ zIndex: zIndex.overlayButtons }}>
               <button
                 onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank', 'noopener,noreferrer')}
                 className="bg-transparent text-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
@@ -774,9 +774,9 @@ const Section: React.FC<SectionProps> = React.memo(({ section, onVideoClick, onS
           </div>
         </>
       )}
-    </motion.section>
+    </section>
   );
-});
+};
 Section.displayName = 'Section';
 
 // --- Home Component ---
@@ -887,6 +887,7 @@ export default function Home() {
     }>
       {/* Add structured data for SEO */}
       <SEOSchema />
+      <SEOHeadings />
         {/* Add global CSS for xl-object-contain */}
         <Head>
           <link 

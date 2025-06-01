@@ -5,6 +5,7 @@ import Head from 'next/head'
 import LocalBusinessSchema from './LocalBusinessSchema'
 import FAQSchema from './FAQSchema'
 import WebpageSchema from './WebpageSchema'
+import ReviewSchema from './ReviewSchema'
 
 export default function SEOSchema() {
   return (
@@ -12,6 +13,7 @@ export default function SEOSchema() {
       <LocalBusinessSchema />
       <FAQSchema />
       <WebpageSchema />
+      <ReviewSchema />
     </Fragment>
   )
 }

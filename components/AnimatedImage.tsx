@@ -40,6 +40,7 @@ const AnimatedImage = memo(function AnimatedImage({
     const [isVideoFading, setIsVideoFading] = useState(false);
     const [isVideoPaused, setIsVideoPaused] = useState(false);
     const [hasVideoPlayedOnce, setHasVideoPlayedOnce] = useState(false);
+    const playAttemptTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -58,10 +59,23 @@ const AnimatedImage = memo(function AnimatedImage({
                 setHasVideoEnded(true);
             }
         }
+        
+        // Cleanup timeout on unmount
+        return () => {
+            if (playAttemptTimeoutRef.current) {
+                clearTimeout(playAttemptTimeoutRef.current);
+            }
+        };
     }, [videoPath]);
 
     const attemptPlayVideo = useCallback(async () => {
-        if (videoRef.current && !videoError && !hasVideoEnded && !hasVideoPlayedOnce) {
+        // Debounce play attempts to prevent multiple simultaneous calls
+        if (playAttemptTimeoutRef.current) {
+            clearTimeout(playAttemptTimeoutRef.current);
+        }
+        
+        playAttemptTimeoutRef.current = setTimeout(async () => {
+            if (videoRef.current && !videoError && !hasVideoEnded && !hasVideoPlayedOnce) {
             try {
                 // Only reset to beginning if video hasn't started playing yet or has ended
                 if (videoRef.current.currentTime === 0 || videoRef.current.ended) {
@@ -107,6 +121,7 @@ const AnimatedImage = memo(function AnimatedImage({
                 }
             }
         }
+        }, 50); // Small debounce delay
     }, [videoError, hasVideoEnded, hasVideoPlayedOnce, onVideoEnded]);
 
     useEffect(() => {
@@ -184,10 +199,13 @@ const AnimatedImage = memo(function AnimatedImage({
                     muted
                     autoPlay
                     loop={false}
-                    preload="metadata"
+                    preload="auto"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: (showVideoLayer || isFadingVideo) ? 1 : 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ 
+                        duration: 0.3,
+                        ease: "easeInOut"
+                    }}
                     onLoadedData={() => {
                         setIsVideoTagReady(true);
                         if (videoRef.current?.play) {
@@ -213,7 +231,7 @@ const AnimatedImage = memo(function AnimatedImage({
                         
                         setTimeout(() => {
                             setIsVideoFading(false);
-                        }, 500);
+                        }, 300);
                         // Call the callback if provided
                         if (onVideoEnded) {
                             onVideoEnded();

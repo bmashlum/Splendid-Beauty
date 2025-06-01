@@ -1,13 +1,30 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "splendid-beauty-bar",
+  "version": "1.0.0",
   "private": true,
+  "description": "Splendid Beauty Bar & Co. - Atlanta's premier beauty studio offering luxury facials, expert brow artistry, clinical peels, eyelash enhancements, and permanent makeup services.",
+  "author": "Splendid Beauty Bar & Co.",
+  "keywords": [
+    "beauty salon",
+    "spa",
+    "atlanta beauty",
+    "facial treatments",
+    "permanent makeup",
+    "microblading",
+    "eyelash extensions"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:prod": "npm run lint && npm run typecheck && npm run build",
+    "analyze": "ANALYZE=true next build",
+    "check-updates": "npx npm-check-updates -u",
+    "clean": "rm -rf .next node_modules package-lock.json && npm install",
+    "optimize:images": "bash optimize-images.sh",
+    "optimize:videos": "bash optimize_videos.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -54,29 +54,99 @@ export default function LocalBusinessSchema() {
     description: "Atlanta's premier beauty studio offering luxury facials, expert brow artistry, clinical peels, eyelash enhancements, and permanent makeup services.",
     makesOffer: [
       {
-        '@type': 'Offer',
-        name: 'Facial Services',
-        description: 'Professional facial treatments customized for your skin type'
+        '@type': 'Service',
+        name: 'Luxury Facial Services',
+        description: 'Professional facial treatments customized for your skin type including hydrating facials, anti-aging treatments, and acne solutions',
+        offers: {
+          '@type': 'Offer',
+          priceRange: '$75-$250',
+          availability: 'https://schema.org/InStock'
+        },
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Splendid Beauty Bar & Co.'
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Atlanta'
+        },
+        serviceType: 'Facial Treatment'
       },
       {
-        '@type': 'Offer',
-        name: 'Brow Artistry',
-        description: 'Expert brow shaping, tinting, and microblading'
+        '@type': 'Service',
+        name: 'Permanent Makeup & Microblading',
+        description: 'Long-lasting beauty enhancements for brows, eyes, and lips using advanced micropigmentation techniques',
+        offers: {
+          '@type': 'Offer',
+          priceRange: '$300-$800',
+          availability: 'https://schema.org/InStock'
+        },
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Splendid Beauty Bar & Co.'
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Atlanta'
+        },
+        serviceType: 'Permanent Makeup'
       },
       {
-        '@type': 'Offer',
-        name: 'Clinical Peels',
-        description: 'Advanced skin treatments for renewal and rejuvenation'
+        '@type': 'Service',
+        name: 'Clinical Chemical Peels',
+        description: 'Medical-grade chemical peel treatments for skin renewal, rejuvenation, and addressing specific skin concerns',
+        offers: {
+          '@type': 'Offer',
+          priceRange: '$100-$350',
+          availability: 'https://schema.org/InStock'
+        },
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Splendid Beauty Bar & Co.'
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Atlanta'
+        },
+        serviceType: 'Chemical Peel'
       },
       {
-        '@type': 'Offer',
-        name: 'Permanent Makeup',
-        description: 'Long-lasting beauty enhancements for brows, eyes, and lips'
+        '@type': 'Service',
+        name: 'Eyelash Extensions & Enhancements',
+        description: 'Premium eyelash extension services including classic, volume, and hybrid lash applications',
+        offers: {
+          '@type': 'Offer',
+          priceRange: '$80-$250',
+          availability: 'https://schema.org/InStock'
+        },
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Splendid Beauty Bar & Co.'
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Atlanta'
+        },
+        serviceType: 'Eyelash Treatment'
       },
       {
-        '@type': 'Offer',
-        name: 'Eyelash Services',
-        description: 'Extensions and treatments for fuller, longer lashes'
+        '@type': 'Service',
+        name: 'Expert Brow Artistry',
+        description: 'Professional brow shaping, tinting, lamination, and henna treatments for perfect brows',
+        offers: {
+          '@type': 'Offer',
+          priceRange: '$40-$150',
+          availability: 'https://schema.org/InStock'
+        },
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Splendid Beauty Bar & Co.'
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Atlanta'
+        },
+        serviceType: 'Brow Treatment'
       }
     ],
     review: {

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { zIndex } from '@/lib/z-index';
 
 interface HoverPoint {
   id: string;
@@ -176,6 +177,7 @@ export default function ServiceHoverPoints({ serviceId, onBookingClick }: Servic
   const [activePoint, setActivePoint] = useState<string | null>(null);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const points = serviceHoverPoints[serviceId] || [];
 
   const handleShowTooltip = (pointId: string) => {
@@ -190,11 +192,14 @@ export default function ServiceHoverPoints({ serviceId, onBookingClick }: Servic
     if (!isHoveringTooltip) {
       hideTimeoutRef.current = setTimeout(() => {
         setActivePoint(null);
-      }, 300);
+      }, isTouchDevice ? 0 : 200); // Faster on touch devices
     }
   };
 
   useEffect(() => {
+    // Detect touch device
+    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    
     return () => {
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current);
@@ -217,18 +222,28 @@ export default function ServiceHoverPoints({ serviceId, onBookingClick }: Servic
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ 
-            duration: 0.5, 
-            delay: 0.7 + (index * 0.1),
+            duration: 0.4, 
+            delay: 0.5 + (index * 0.08),
             type: "spring",
-            stiffness: 260,
-            damping: 20
+            stiffness: 300,
+            damping: 25
           }}
         >
           <motion.button
-            className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#063f48]"
-            onMouseEnter={() => handleShowTooltip(point.id)}
-            onMouseLeave={handleHideTooltip}
-            onClick={() => setActivePoint(activePoint === point.id ? null : point.id)}
+            className="relative flex h-10 w-10 sm:h-11 sm:w-11 md:h-10 md:w-10 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#063f48] touch-none"
+            onMouseEnter={() => !isTouchDevice && handleShowTooltip(point.id)}
+            onMouseLeave={() => !isTouchDevice && handleHideTooltip()}
+            onClick={() => {
+              if (isTouchDevice) {
+                setActivePoint(activePoint === point.id ? null : point.id);
+              } else {
+                setActivePoint(activePoint === point.id ? null : point.id);
+              }
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              setActivePoint(activePoint === point.id ? null : point.id);
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -241,11 +256,14 @@ export default function ServiceHoverPoints({ serviceId, onBookingClick }: Servic
           <AnimatePresence>
             {activePoint === point.id && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 5, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="absolute z-50 w-64 sm:w-72 pointer-events-auto"
+                exit={{ opacity: 0, y: 5, scale: 0.98 }}
+                transition={{ 
+                  duration: 0.15,
+                  ease: "easeOut"
+                }}
+                className="absolute w-[calc(100vw-4rem)] max-w-[18rem] sm:w-72 pointer-events-auto"
                 style={{
                   left: point.x > 50 ? 'auto' : '0',
                   right: point.x > 50 ? '0' : 'auto',
@@ -254,6 +272,7 @@ export default function ServiceHoverPoints({ serviceId, onBookingClick }: Servic
                   marginTop: point.y <= 50 ? '0.5rem' : 0,
                   marginBottom: point.y > 50 ? '0.5rem' : 0,
                   transform: point.x > 50 ? 'translateX(-100%)' : 'translateX(0)',
+                  zIndex: zIndex.tooltip
                 }}
                 onMouseEnter={() => {
                   setIsHoveringTooltip(true);

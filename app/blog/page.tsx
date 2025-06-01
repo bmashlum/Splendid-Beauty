@@ -500,7 +500,7 @@ const Newsletter: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Add newsletter signup logic here
-    console.log('Newsletter signup:', email);
+    // Newsletter signup handled here
   };
   
   return (
