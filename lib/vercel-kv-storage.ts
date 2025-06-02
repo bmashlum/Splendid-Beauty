@@ -10,6 +10,8 @@ export interface StorageAdapter {
   saveBlogPosts(posts: BlogPost[]): Promise<void>
   getEvents(): Promise<Event[]>
   saveEvents(events: Event[]): Promise<void>
+  // Health check method to verify storage is working
+  healthCheck?(): Promise<boolean>
 }
 
 // File-based storage for local development
@@ -50,6 +52,20 @@ export class FileStorage implements StorageAdapter {
   async saveEvents(events: Event[]): Promise<void> {
     await this.fs.writeFile(this.eventsFile, JSON.stringify(events, null, 2))
   }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      // Test write to temp file
+      const testFile = this.path.join(process.cwd(), 'data', `.health-check-${Date.now()}`)
+      await this.fs.writeFile(testFile, JSON.stringify({ test: true }))
+      const content = await this.fs.readFile(testFile, 'utf8')
+      await this.fs.unlink(testFile)
+      return JSON.parse(content).test === true
+    } catch (error) {
+      console.error('FileStorage health check failed:', error)
+      return false
+    }
+  }
 }
 
 // Vercel KV storage for production
@@ -66,7 +82,10 @@ export class VercelKVStorage implements StorageAdapter {
         console.log('Vercel KV initialized successfully')
       } catch (error) {
         console.error('Failed to initialize Vercel KV:', error)
+        // Don't throw - let health check handle the missing KV
       }
+    } else {
+      console.warn('KV environment variables not found - KV storage will not be available')
     }
   }
 
@@ -176,6 +195,32 @@ export class VercelKVStorage implements StorageAdapter {
       throw error
     }
   }
+
+  async healthCheck(): Promise<boolean> {
+    if (!this.kv) {
+      console.error('KV not available for health check')
+      return false
+    }
+    
+    try {
+      const testKey = 'health:check:' + Date.now()
+      const testData = { test: true, timestamp: new Date().toISOString() }
+      
+      // Write test data
+      await this.kv.set(testKey, testData, { ex: 60 }) // Expire after 60 seconds
+      
+      // Read it back
+      const retrieved = await this.kv.get(testKey)
+      
+      // Clean up
+      await this.kv.del(testKey)
+      
+      return retrieved?.test === true
+    } catch (error) {
+      console.error('VercelKV health check failed:', error)
+      return false
+    }
+  }
 }
 
 // In-memory storage as fallback
@@ -233,6 +278,21 @@ export class InMemoryStorage implements StorageAdapter {
   async saveEvents(events: Event[]): Promise<void> {
     await this.initialize()
     this.events = [...events]
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      // Simple check - can we read and write to memory
+      const testData = { test: true }
+      const tempPosts = this.blogPosts
+      this.blogPosts = [testData as any]
+      const result = this.blogPosts[0]?.test === true
+      this.blogPosts = tempPosts
+      return result
+    } catch (error) {
+      console.error('InMemoryStorage health check failed:', error)
+      return false
+    }
   }
 }
 

@@ -169,7 +169,12 @@ export default function PerformanceDashboard() {
                 <h3 className="font-medium mb-2">System Checks</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span>Filesystem</span>
+                    <span className="group relative">
+                      Write Storage
+                      <span className="absolute bottom-full left-0 mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                        Redis in production, filesystem in dev
+                      </span>
+                    </span>
                     {healthData.checks.filesystem ? (
                       <CheckCircle className="w-4 h-4 text-green-500" />
                     ) : (
@@ -267,9 +272,23 @@ export default function PerformanceDashboard() {
             {healthData.errors && healthData.errors.length > 0 && (
               <div className="mt-4 p-4 bg-red-50 rounded-md">
                 <h3 className="font-medium text-red-800 mb-2">System Issues</h3>
-                <ul className="list-disc list-inside text-sm text-red-700">
+                <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
                   {healthData.errors.map((error, index) => (
-                    <li key={index}>{error}</li>
+                    <li key={index}>
+                      {error}
+                      {error.includes('Vercel KV') && (
+                        <div className="mt-1 ml-5 text-xs text-red-600">
+                          <a 
+                            href="https://vercel.com/dashboard/stores" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="underline hover:text-red-800"
+                          >
+                            → Configure Vercel KV in your dashboard
+                          </a>
+                        </div>
+                      )}
+                    </li>
                   ))}
                 </ul>
               </div>

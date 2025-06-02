@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
 import { checkServiceConfiguration } from '@/lib/env'
 import { getCache } from '@/lib/cache'
 import { errorLogger } from '@/lib/error-logger'
@@ -29,24 +27,26 @@ interface HealthCheck {
   errors?: string[]
 }
 
-async function checkFilesystem(): Promise<boolean> {
+async function checkWriteCapability(): Promise<boolean> {
   try {
-    // Check if we can read/write to data directory
-    const dataDir = path.join(process.cwd(), 'data')
-    const testFile = path.join(dataDir, '.health-check')
+    const storage = getStorageInstance()
     
-    // Try to write a test file
-    await fs.writeFile(testFile, new Date().toISOString())
+    // Use the storage adapter's health check method if available
+    if (storage.healthCheck) {
+      return await storage.healthCheck()
+    }
     
-    // Try to read it back
-    await fs.readFile(testFile, 'utf-8')
-    
-    // Clean up
-    await fs.unlink(testFile)
-    
-    return true
+    // Fallback: try basic read operations
+    try {
+      await storage.getBlogPosts()
+      await storage.getEvents()
+      return true
+    } catch (error) {
+      console.error('Storage read test failed:', error)
+      return false
+    }
   } catch (error) {
-    console.error('Filesystem check failed:', error)
+    console.error('Write capability check failed:', error)
     return false
   }
 }
@@ -105,7 +105,7 @@ export async function GET() {
   try {
     // Run health checks
     const [filesystemOk, cacheOk, storageOk] = await Promise.all([
-      checkFilesystem(),
+      checkWriteCapability(),
       checkCache(),
       checkStorage()
     ])
@@ -113,8 +113,16 @@ export async function GET() {
     const { services } = checkServiceConfiguration()
     const memory = getMemoryUsage()
     
-    // Collect any errors
-    if (!filesystemOk) errors.push('Filesystem check failed')
+    // Collect any errors with more descriptive messages
+    if (!filesystemOk) {
+      const env = process.env.VERCEL ? 'Vercel' : process.env.NETLIFY ? 'Netlify' : 'server'
+      const isProduction = process.env.NODE_ENV === 'production'
+      if (isProduction || env !== 'server') {
+        errors.push(`Storage write test failed - Check Vercel KV configuration in dashboard`)
+      } else {
+        errors.push(`Storage write test failed - Check filesystem permissions`)
+      }
+    }
     if (!cacheOk) errors.push('Cache check failed')
     if (!storageOk) errors.push('Storage check failed')
     if (!services.auth) errors.push('Auth not properly configured')
