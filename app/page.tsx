@@ -261,7 +261,7 @@ type SectionData = {
 
 const sectionsData: SectionData[] = [
   // Adjusted connect objectPosition slightly for default/XL
-  { id: 'hero', objectPosition: 'object-center' }, // Centered on all screen sizes
+  { id: 'hero', objectPosition: 'object-center' }, // Center aligned for all screen sizes
   { id: 'events', content: <EventsSection /> },
   { id: 'about-us', objectPosition: 'object-center' },
   { id: 'award-1', objectPosition: 'object-center', overlay: 'video' },
@@ -383,12 +383,12 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
     'relative w-full overflow-hidden', // Common base classes
     isHero
       ? [
-          'mt-20 sm:mt-16 md:mt-16 lg:mt-6', // Reduced top margin on mobile
-          'aspect-[16/11] sm:aspect-video md:h-[70vh] xl:h-screen xl:w-full', // Better mobile aspect ratio
-          'my-0 sm:my-0 md:my-0' // No additional vertical margins for hero
+          'pt-12 sm:pt-14', // Padding top for fixed navbar (3rem on mobile, 3.5rem on sm)
+          'aspect-video xl:h-screen xl:w-full', // Use aspect-video on mobile too to prevent cropping
+          'my-0' // No vertical margins for hero
         ]
       : [ // Other sections:
-          'my-1 sm:my-4 lg:my-6', // Margins for non-hero sections
+          'my-0 sm:my-2 lg:my-4', // Reduced margins between sections
           'aspect-video xl:h-[95vh]', // Handles height across breakpoints
           'xl:w-[95%] xl:mx-auto xl:rounded-lg xl:shadow-lg' // XL specific width, centering, and styling
         ]
@@ -427,8 +427,19 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
               alt={`${id} section background`}
               fill
               className={cn(
-                "w-full h-full object-cover",
-                objectPosition
+                "w-full h-full",
+                // Handle object-fit classes
+                objectPosition.includes("object-contain") ? "object-contain" : "object-cover",
+                objectPosition.includes("md:object-cover") ? "md:object-cover" : "",
+                objectPosition.includes("xl:object-contain") ? "xl-object-contain" : "",
+                // Only use positioning part from objectPosition
+                objectPosition.includes("object-center") ? "object-center" : "",
+                objectPosition.includes("object-bottom") ? "object-bottom" : "",
+                objectPosition.includes("object-top") ? "object-top" : "",
+                objectPosition.includes("object-left") ? "object-left" : "",
+                objectPosition.includes("object-right") ? "object-right" : "",
+                objectPosition.includes("md:object-center") ? "md:object-center" : "",
+              objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
               )}
               priority={isHero || priorityImages.includes(id)}
               sizes={imageSizes}
@@ -439,7 +450,7 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
               style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
             />
           ) : (
-            <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
+            <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
           )}
 
           {/* Floating Action Button for mobile/tablet, only when in view */}
@@ -577,7 +588,10 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
             alt={getAltText(id)}
             fill
             className={cn(
-              "w-full h-full object-cover",
+              "w-full h-full",
+              // Handle object-fit classes
+              objectPosition.includes("object-contain") ? "object-contain" : "object-cover",
+              objectPosition.includes("md:object-cover") ? "md:object-cover" : "",
               objectPosition.includes("xl:object-contain") ? "xl-object-contain" : "",
               // Only use positioning part from objectPosition
               objectPosition.includes("object-center") ? "object-center" : "",
@@ -585,6 +599,7 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
               objectPosition.includes("object-top") ? "object-top" : "",
               objectPosition.includes("object-left") ? "object-left" : "",
               objectPosition.includes("object-right") ? "object-right" : "",
+              objectPosition.includes("md:object-center") ? "md:object-center" : "",
               objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
             )}
             priority={isHero || priorityImages.includes(id)}
@@ -598,7 +613,7 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
             style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
           />
         ) : (
-          <div className="h-full w-full bg-gray-200 flex items-center justify-center"><p>Loading content for {id}...</p></div>
+          <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
         )}
         
         {/* Service Hover Points for the last 4 service sections - only show after video ends */}
@@ -770,10 +785,10 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
           
           {/* Mobile button positioned exactly like the desktop version for Financing - smaller and lower */}
           <div className="absolute inset-0 xl:hidden">
-            <div className="absolute bottom-[17%] left-1/2 transform translate-x-[-50%]" style={{ zIndex: zIndex.overlayButtons }}>
+            <div className="absolute bottom-[14%] left-1/2 transform translate-x-[15%]" style={{ zIndex: zIndex.overlayButtons }}>
               <button
                 onClick={() => window.open('https://pay.withcherry.com/splendidbeautybar?utm_source=finder&m=8955', '_blank', 'noopener,noreferrer')}
-                className="bg-transparent text-transparent hover:bg-transparent/20 active:bg-transparent/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
+                className="bg-transparent text-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#063f48] cursor-pointer"
                 style={{ 
                   width: "calc(40vw)", 
                   height: "calc(8vw)",
@@ -935,7 +950,7 @@ export default function Home() {
         <main
           ref={mainRef}
           id="main-content"
-          className="h-screen overflow-y-auto overflow-x-hidden scroll-smooth focus:outline-none pt-6 sm:pt-4"
+          className="h-screen overflow-y-auto overflow-x-hidden scroll-smooth focus:outline-none pt-0"
           tabIndex={-1}
         >
           <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl text-gray-700">Loading Sections...</div>}>

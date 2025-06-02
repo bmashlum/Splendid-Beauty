@@ -28,7 +28,7 @@ class ErrorLogger {
 
     // In development, log to console
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error logged:', errorLog)
+      console.error(`Error logged: ${errorLog.message}`, errorLog)
     }
 
     // Store in memory (in production, you'd send this to a logging service)

@@ -165,7 +165,10 @@ const AnimatedImage = memo(function AnimatedImage({
                     src={imagePath}
                     alt={alt}
                     className={cn(
-                        "w-full h-full object-cover",
+                        "w-full h-full",
+                        // Handle object-fit classes
+                        objectPosition.includes("object-contain") ? "object-contain" : "object-cover",
+                        objectPosition.includes("md:object-cover") ? "md:object-cover" : "",
                         shouldUseContainXL ? "xl-object-contain" : "",
                         // Only use positioning part from objectPosition
                         objectPosition.includes("object-center") ? "object-center" : "",
@@ -173,6 +176,7 @@ const AnimatedImage = memo(function AnimatedImage({
                         objectPosition.includes("object-top") ? "object-top" : "",
                         objectPosition.includes("object-left") ? "object-left" : "",
                         objectPosition.includes("object-right") ? "object-right" : "",
+                        objectPosition.includes("md:object-center") ? "md:object-center" : "",
                         objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
                     )}
                     fill
@@ -194,7 +198,10 @@ const AnimatedImage = memo(function AnimatedImage({
                 <motion.video
                     ref={videoRef}
                     className={cn(
-                        "absolute inset-0 h-full w-full object-cover",
+                        "absolute inset-0 h-full w-full",
+                        // Handle object-fit classes
+                        objectPosition.includes("object-contain") ? "object-contain" : "object-cover",
+                        objectPosition.includes("md:object-cover") ? "md:object-cover" : "",
                         shouldUseContainXL ? "xl-object-contain" : "",
                         // Only use positioning part from objectPosition
                         objectPosition.includes("object-center") ? "object-center" : "",
@@ -202,6 +209,7 @@ const AnimatedImage = memo(function AnimatedImage({
                         objectPosition.includes("object-top") ? "object-top" : "",
                         objectPosition.includes("object-left") ? "object-left" : "",
                         objectPosition.includes("object-right") ? "object-right" : "",
+                        objectPosition.includes("md:object-center") ? "md:object-center" : "",
                         objectPosition.includes("xl:object-center") ? "xl:object-center" : ""
                     )}
                     style={{

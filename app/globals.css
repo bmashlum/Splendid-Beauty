@@ -230,6 +230,41 @@ video.xl-object-contain {
   }
 }
 
+/* Hero section specific styling */
+#hero {
+  /* Ensure proper sizing on all screen sizes */
+  position: relative;
+  width: 100%;
+  /* Add background color that matches the theme */
+  background-color: #f9f7e8; /* Match site theme */
+}
+
+/* Hero section video/image styling */
+#hero video,
+#hero img {
+  /* Mobile and tablet styling */
+  @media (max-width: 767px) {
+    /* Use contain to show the full video/image without cropping */
+    object-fit: contain !important;
+    object-position: center center !important;
+    width: 100%;
+    height: 100%;
+    background-color: #f9f7e8; /* Add background color to fill any letterboxing */
+  }
+  
+  /* Tablet styling */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+  
+  /* Desktop styling */
+  @media (min-width: 1024px) {
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+}
+
 /* Mobile navbar styling */
 @media (max-width: 767px) {
   .mobile-navbar {

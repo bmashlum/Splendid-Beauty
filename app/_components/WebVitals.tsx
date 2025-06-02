@@ -32,7 +32,7 @@ export function WebVitals() {
       }
 
       if (metric.value > thresholds[metric.name]) {
-        console.warn(`Poor ${metric.name} performance:`, metric.value)
+        console.log(`Poor ${metric.name} performance:`, metric.value)
         
         // You could send this to your error logger
         if (typeof window !== 'undefined') {
