@@ -3,8 +3,6 @@
 // Test script to verify health check functionality
 // Run with: node scripts/test-health-check.js
 
-const fetch = require('node-fetch');
-
 async function testHealthCheck() {
   const baseUrl = process.env.VERCEL_URL 
     ? `https://${process.env.VERCEL_URL}`
@@ -43,7 +41,7 @@ async function testHealthCheck() {
     
     console.log('\nOverall health check:', response.status === 200 ? 'PASSED' : 'FAILED');
   } catch (error) {
-    console.error('Failed to fetch health check:', error.message);
+    console.error('Failed to fetch health check:', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 

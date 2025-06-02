@@ -203,7 +203,7 @@ export class VercelKVStorage implements StorageAdapter {
     }
     
     try {
-      const testKey = 'health:check:' + Date.now()
+      const testKey = 'health:check:' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)
       const testData = { test: true, timestamp: new Date().toISOString() }
       
       // Write test data
@@ -285,8 +285,8 @@ export class InMemoryStorage implements StorageAdapter {
       // Simple check - can we read and write to memory
       const testData = { test: true }
       const tempPosts = this.blogPosts
-      this.blogPosts = [testData as any]
-      const result = this.blogPosts[0]?.test === true
+      this.blogPosts = [testData as any as BlogPost]
+      const result = (this.blogPosts[0] as any)?.test === true
       this.blogPosts = tempPosts
       return result
     } catch (error) {
