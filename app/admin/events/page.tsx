@@ -185,15 +185,18 @@ export default function EventsPage() {
         const data = await response.json();
         throw new Error(data.error || 'Failed to delete event');
       }
+      // Optimistic update  
       setEvents(prev => prev.filter(event => event.id !== id));
       showToast('Event deleted successfully!', 'success');
+      // Force refetch to ensure consistency
+      fetchEvents();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(msg);
       showToast(msg, 'error');
       console.error('Error deleting event:', err);
     }
-  }, [showToast]);
+  }, [showToast, fetchEvents]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();

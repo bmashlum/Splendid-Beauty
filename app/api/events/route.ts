@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { z } from 'zod';
 import { jwtVerify } from 'jose';
 import { getStorageInstance } from '@/lib/vercel-kv-storage';
+import { getCache } from '@/lib/cache';
 
 // Auth middleware
 async function verifyAuth(request: NextRequest): Promise<boolean> {
@@ -232,6 +233,12 @@ export async function POST(request: NextRequest) {
     const events = await getEvents();
     events.push(newEvent);
     await saveEvents(events);
+    
+    // Invalidate cache after successful creation
+    const cache = getCache();
+    await cache.delete('events');
+    await cache.delete('events_upcoming');
+    await cache.delete('events_past');
 
     return NextResponse.json({ event: newEvent }, { status: 201 });
   } catch (error) {
@@ -328,6 +335,12 @@ export async function PUT(request: NextRequest) {
 
     events[eventIndex] = updatedEvent;
     await saveEvents(events);
+    
+    // Invalidate cache after successful update
+    const cache = getCache();
+    await cache.delete('events');
+    await cache.delete('events_upcoming');
+    await cache.delete('events_past');
 
     return NextResponse.json({ event: updatedEvent });
   } catch (error) {
@@ -374,6 +387,12 @@ export async function DELETE(request: NextRequest) {
 
     const updatedEvents = events.filter(event => event.id !== id);
     await saveEvents(updatedEvents);
+    
+    // Invalidate cache after successful deletion
+    const cache = getCache();
+    await cache.delete('events');
+    await cache.delete('events_upcoming');
+    await cache.delete('events_past');
 
     return NextResponse.json({ success: true, message: 'Event deleted' });
   } catch (error) {

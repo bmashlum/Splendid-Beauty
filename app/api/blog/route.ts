@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { z } from 'zod';
 import { jwtVerify } from 'jose';
 import { getStorageInstance } from '@/lib/vercel-kv-storage';
+import { getCache } from '@/lib/cache';
 
 // Auth middleware
 async function verifyAuth(request: NextRequest): Promise<boolean> {
@@ -247,6 +248,12 @@ export async function POST(request: NextRequest) {
     posts.push(newPost);
     await saveBlogPosts(posts);
     
+    // Invalidate cache after successful creation
+    const cache = getCache();
+    await cache.delete('blog_posts');
+    await cache.delete('blog_posts_published');
+    await cache.delete('blog_posts_drafts');
+    
     return NextResponse.json({ post: newPost }, { status: 201 });
   } catch (error) {
     console.error("POST /api/blog Error:", error);
@@ -346,6 +353,12 @@ export async function PUT(request: NextRequest) {
     posts[postIndex] = updatedPost;
     await saveBlogPosts(posts);
     
+    // Invalidate cache after successful update
+    const cache = getCache();
+    await cache.delete('blog_posts');
+    await cache.delete('blog_posts_published');
+    await cache.delete('blog_posts_drafts');
+    
     return NextResponse.json({ post: updatedPost });
   } catch (error) {
     console.error("PUT /api/blog Error:", error);
@@ -391,6 +404,12 @@ export async function DELETE(request: NextRequest) {
 
     const updatedPosts = posts.filter(post => post.id !== id);
     await saveBlogPosts(updatedPosts);
+    
+    // Invalidate cache after successful deletion
+    const cache = getCache();
+    await cache.delete('blog_posts');
+    await cache.delete('blog_posts_published');
+    await cache.delete('blog_posts_drafts');
     
     return NextResponse.json({ success: true, message: 'Blog post deleted' });
   } catch (error) {

@@ -190,15 +190,18 @@ export default function BlogPage() {
         const data = await response.json();
         throw new Error(data.error || 'Failed to delete blog post');
       }
+      // Optimistic update
       setPosts(prev => prev.filter(post => post.id !== id));
       showToast('Blog post deleted successfully!', 'success');
+      // Force refetch to ensure consistency
+      fetchPosts();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
       showToast(errorMessage, 'error');
       console.error('Error deleting blog post:', err);
     }
-  }, [showToast]);
+  }, [showToast, fetchPosts]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
