@@ -10,12 +10,15 @@ export function WebVitals() {
     }
 
     // Send to Google Analytics if available
-    if (typeof window !== 'undefined' && (window as Window & { gtag?: (...args: unknown[]) => void }).gtag) {
-      (window as Window & { gtag?: (...args: unknown[]) => void }).gtag('event', metric.name, {
-        value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
-        event_label: metric.id,
-        non_interaction: true,
-      })
+    if (typeof window !== 'undefined') {
+      const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag
+      if (gtag) {
+        gtag('event', metric.name, {
+          value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+          event_label: metric.id,
+          non_interaction: true,
+        })
+      }
     }
 
     // Track Core Web Vitals specifically

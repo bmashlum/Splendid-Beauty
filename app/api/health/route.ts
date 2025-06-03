@@ -29,7 +29,7 @@ interface HealthCheck {
 
 async function checkWriteCapability(): Promise<boolean> {
   try {
-    const storage = getStorageInstance()
+    const storage = await getStorageInstance()
     
     // Use the storage adapter's health check method if available
     if (storage.healthCheck) {
@@ -75,7 +75,7 @@ async function checkCache(): Promise<boolean> {
 
 async function checkStorage(): Promise<boolean> {
   try {
-    const storage = getStorageInstance()
+    const storage = await getStorageInstance()
     
     // Test reading (should work even if empty)
     await storage.getBlogPosts()

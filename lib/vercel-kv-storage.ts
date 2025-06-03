@@ -242,7 +242,7 @@ export class VercelKVStorage implements StorageAdapter {
       await this.kv.set(testKey, testValue, { ex: 60 })
       
       // Read it back
-      const retrieved = await this.kv.get(testKey)
+      const retrieved = await this.kv.get(testKey) as { test: boolean } | null
       
       // Clean up
       await this.kv.del(testKey)
