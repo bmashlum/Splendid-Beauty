@@ -319,6 +319,7 @@ export function getStorage(): StorageAdapter {
 
 // Use global to persist storage instance across HMR reloads in development
 declare global {
+  // eslint-disable-next-line no-var
   var __storageInstance: StorageAdapter | undefined;
 }
 
