@@ -44,8 +44,24 @@ interface ErrorLog {
   type: 'error' | 'warning' | 'info'
 }
 
+interface StorageMetrics {
+  totalSize: number
+  totalSizeFormatted: string
+  blogPostsSize: number
+  blogPostsCount: number
+  eventsSize: number
+  eventsCount: number
+  usagePercentage: number
+  remainingSize: number
+  remainingSizeFormatted: string
+  isNearLimit: boolean
+  isAtLimit: boolean
+  storageType: string
+}
+
 export default function PerformanceDashboard() {
   const [healthData, setHealthData] = useState<HealthData | null>(null)
+  const [storageMetrics, setStorageMetrics] = useState<StorageMetrics | null>(null)
   const [errors, setErrors] = useState<ErrorLog[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,6 +73,18 @@ export default function PerformanceDashboard() {
       setHealthData(data)
     } catch (error) {
       console.error('Failed to fetch health data:', error)
+    }
+  }
+
+  const fetchStorageMetrics = async () => {
+    try {
+      const response = await fetch('/api/storage-metrics')
+      const data = await response.json()
+      if (data.success) {
+        setStorageMetrics(data.metrics)
+      }
+    } catch (error) {
+      console.error('Failed to fetch storage metrics:', error)
     }
   }
 
@@ -83,12 +111,12 @@ export default function PerformanceDashboard() {
 
   const refresh = async () => {
     setRefreshing(true)
-    await Promise.all([fetchHealth(), fetchErrors()])
+    await Promise.all([fetchHealth(), fetchStorageMetrics(), fetchErrors()])
     setRefreshing(false)
   }
 
   useEffect(() => {
-    Promise.all([fetchHealth(), fetchErrors()]).then(() => setLoading(false))
+    Promise.all([fetchHealth(), fetchStorageMetrics(), fetchErrors()]).then(() => setLoading(false))
     
     // Auto-refresh every 30 seconds
     const interval = setInterval(refresh, 30000)
@@ -236,6 +264,63 @@ export default function PerformanceDashboard() {
                 </div>
               </div>
 
+              {/* Storage Usage */}
+              {storageMetrics && (
+                <div>
+                  <h3 className="font-medium mb-2">Redis/KV Storage</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Type</span>
+                      <span className="text-xs">{storageMetrics.storageType}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Used</span>
+                      <span>{storageMetrics.totalSizeFormatted}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Remaining</span>
+                      <span>{storageMetrics.remainingSizeFormatted}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Blog Posts</span>
+                      <span>{storageMetrics.blogPostsCount} items</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Events</span>
+                      <span>{storageMetrics.eventsCount} items</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${
+                          storageMetrics.isAtLimit ? 'bg-red-500' :
+                          storageMetrics.isNearLimit ? 'bg-yellow-500' :
+                          'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(storageMetrics.usagePercentage, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className={`${
+                        storageMetrics.isAtLimit ? 'text-red-600' :
+                        storageMetrics.isNearLimit ? 'text-yellow-600' :
+                        'text-gray-500'
+                      }`}>
+                        {storageMetrics.isAtLimit ? '⚠️ Storage Critical' :
+                         storageMetrics.isNearLimit ? '⚠️ Storage Warning' :
+                         'Storage Healthy'}
+                      </span>
+                      <span className={`${
+                        storageMetrics.isAtLimit ? 'text-red-600' :
+                        storageMetrics.isNearLimit ? 'text-yellow-600' :
+                        'text-gray-500'
+                      }`}>
+                        {storageMetrics.usagePercentage}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Services */}
               <div>
                 <h3 className="font-medium mb-2">Services</h3>
@@ -291,6 +376,49 @@ export default function PerformanceDashboard() {
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* Storage Warnings */}
+            {storageMetrics && (storageMetrics.isNearLimit || storageMetrics.isAtLimit) && (
+              <div className={`mt-4 p-4 rounded-md ${
+                storageMetrics.isAtLimit ? 'bg-red-50' : 'bg-yellow-50'
+              }`}>
+                <h3 className={`font-medium mb-2 ${
+                  storageMetrics.isAtLimit ? 'text-red-800' : 'text-yellow-800'
+                }`}>
+                  {storageMetrics.isAtLimit ? '🚨 Storage Critical' : '⚠️ Storage Warning'}
+                </h3>
+                <div className={`text-sm space-y-2 ${
+                  storageMetrics.isAtLimit ? 'text-red-700' : 'text-yellow-700'
+                }`}>
+                  <p>
+                    <strong>Storage Usage:</strong> {storageMetrics.usagePercentage}% 
+                    ({storageMetrics.totalSizeFormatted} of 30MB used)
+                  </p>
+                  <p>
+                    <strong>Remaining Space:</strong> {storageMetrics.remainingSizeFormatted}
+                  </p>
+                  {storageMetrics.isAtLimit ? (
+                    <div className="mt-2 p-2 bg-red-100 rounded border-l-4 border-red-500">
+                      <p className="font-medium">Immediate Action Required:</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Delete old blog posts or events</li>
+                        <li>Compress images before uploading</li>
+                        <li>Consider upgrading to Vercel Pro ($20/month for 1GB)</li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="mt-2 p-2 bg-yellow-100 rounded border-l-4 border-yellow-500">
+                      <p className="font-medium">Recommendations:</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Review and delete unnecessary content</li>
+                        <li>Optimize images before uploading</li>
+                        <li>Monitor usage regularly</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
