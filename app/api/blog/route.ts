@@ -67,8 +67,7 @@ if (process.env.NODE_ENV === 'development') {
   })();
 }
 
-// Get storage instance
-const storage = getStorageInstance();
+// Storage instance will be obtained asynchronously in each handler
 
 // File size limits
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -76,6 +75,7 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg
 
 async function getBlogPosts(): Promise<BlogPost[]> {
   try {
+    const storage = await getStorageInstance();
     return await storage.getBlogPosts();
   } catch (error) {
     console.error('Error getting blog posts:', error);
@@ -85,6 +85,7 @@ async function getBlogPosts(): Promise<BlogPost[]> {
 
 async function saveBlogPosts(posts: BlogPost[]): Promise<void> {
   try {
+    const storage = await getStorageInstance();
     await storage.saveBlogPosts(posts);
   } catch (error) {
     console.error('Error saving blog posts:', error);

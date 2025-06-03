@@ -74,18 +74,18 @@ export class VercelKVStorage implements StorageAdapter {
   private initialized = false
   
   constructor() {
-    // Only import kv in production to avoid errors in development
-    if (process.env.KV_URL || process.env.KV_REST_API_URL) {
-      try {
-        const { kv } = require('@vercel/kv') // eslint-disable-line @typescript-eslint/no-require-imports
-        this.kv = kv
-        console.log('Vercel KV initialized successfully')
-      } catch (error) {
-        console.error('Failed to initialize Vercel KV:', error)
-        // Don't throw - let health check handle the missing KV
+    // Import the KV client
+    try {
+      const { getKVClient } = require('./vercel-kv-client') // eslint-disable-line @typescript-eslint/no-require-imports
+      this.kv = getKVClient()
+      
+      if (this.kv) {
+        console.log('[VercelKVStorage] KV client obtained successfully')
+      } else {
+        console.error('[VercelKVStorage] Failed to obtain KV client - falling back to in-memory storage')
       }
-    } else {
-      console.warn('KV environment variables not found - KV storage will not be available')
+    } catch (error) {
+      console.error('[VercelKVStorage] Error importing KV client:', error)
     }
   }
 
@@ -154,25 +154,50 @@ export class VercelKVStorage implements StorageAdapter {
 
   async saveBlogPosts(posts: BlogPost[]): Promise<void> {
     if (!this.kv) {
+      console.error('[VercelKVStorage] Cannot save blog posts - KV client not available')
       throw new Error('KV storage not available')
     }
     
     try {
+      console.log(`[VercelKVStorage] Attempting to save ${posts.length} blog posts to KV`)
+      
+      // Save with explicit options
       await this.kv.set('blog-posts', posts)
-      console.log(`Saved ${posts.length} blog posts to KV`)
+      
+      console.log(`[VercelKVStorage] Successfully executed KV set command`)
       
       // Add a small delay to ensure KV propagation
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       // Verify the save by reading back
       const verified = await this.kv.get('blog-posts')
-      if (!verified || (Array.isArray(verified) && verified.length !== posts.length)) {
-        console.warn('KV save verification failed, retrying...')
-        await this.kv.set('blog-posts', posts)
-        await new Promise(resolve => setTimeout(resolve, 200))
+      
+      if (!verified) {
+        console.error('[VercelKVStorage] Verification failed - no data returned from KV')
+        throw new Error('Failed to verify blog posts were saved to KV')
       }
+      
+      const verifiedArray = Array.isArray(verified) ? verified : []
+      console.log(`[VercelKVStorage] Verification: saved ${posts.length} posts, retrieved ${verifiedArray.length} posts`)
+      
+      if (verifiedArray.length !== posts.length) {
+        console.warn('[VercelKVStorage] Post count mismatch, retrying save...')
+        await this.kv.set('blog-posts', posts)
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Verify again
+        const secondVerify = await this.kv.get('blog-posts')
+        const secondArray = Array.isArray(secondVerify) ? secondVerify : []
+        
+        if (secondArray.length !== posts.length) {
+          console.error(`[VercelKVStorage] Failed to save all posts. Expected: ${posts.length}, Got: ${secondArray.length}`)
+          throw new Error('Failed to save all blog posts to KV')
+        }
+      }
+      
+      console.log(`[VercelKVStorage] Successfully saved and verified ${posts.length} blog posts`)
     } catch (error) {
-      console.error('Error saving blog posts to KV:', error)
+      console.error('[VercelKVStorage] Error saving blog posts to KV:', error)
       throw error
     }
   }
@@ -209,26 +234,17 @@ export class VercelKVStorage implements StorageAdapter {
 
   async healthCheck(): Promise<boolean> {
     if (!this.kv) {
-      console.error('KV not available for health check')
+      console.error('[VercelKVStorage] KV not available for health check')
       return false
     }
     
     try {
-      const testKey = 'health:check:' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)
-      const testData = { test: true, timestamp: new Date().toISOString() }
-      
-      // Write test data
-      await this.kv.set(testKey, testData, { ex: 60 }) // Expire after 60 seconds
-      
-      // Read it back
-      const retrieved = await this.kv.get(testKey)
-      
-      // Clean up
-      await this.kv.del(testKey)
-      
-      return retrieved?.test === true
+      const { testKVConnection } = require('./vercel-kv-client') // eslint-disable-line @typescript-eslint/no-require-imports
+      const isHealthy = await testKVConnection()
+      console.log(`[VercelKVStorage] Health check result: ${isHealthy}`)
+      return isHealthy
     } catch (error) {
-      console.error('VercelKV health check failed:', error)
+      console.error('[VercelKVStorage] Health check failed:', error)
       return false
     }
   }
@@ -308,21 +324,40 @@ export class InMemoryStorage implements StorageAdapter {
 }
 
 // Factory function to get the appropriate storage adapter
-export function getStorage(): StorageAdapter {
-  // Check for KV environment variables first
-  if (process.env.KV_URL || process.env.KV_REST_API_URL) {
-    console.log('Using Vercel KV storage')
-    return new VercelKVStorage()
-  }
+export async function getStorage(): Promise<StorageAdapter> {
+  console.log('[Storage] Determining storage adapter...', {
+    hasKvUrl: !!process.env.KV_URL,
+    hasKvRestApiUrl: !!process.env.KV_REST_API_URL,
+    hasKvRestApiToken: !!process.env.KV_REST_API_TOKEN,
+    isVercel: !!process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV
+  })
   
-  // In production on Vercel without KV, use in-memory storage
+  // In production on Vercel, always try KV first
   if (process.env.VERCEL) {
-    console.log('Using in-memory storage (data will not persist between deployments)')
+    const kvStorage = new VercelKVStorage()
+    
+    // Test if KV is actually working
+    try {
+      const isHealthy = await kvStorage.healthCheck()
+      if (isHealthy) {
+        console.log('[Storage] ✅ Using Vercel KV storage (verified working)')
+        return kvStorage
+      } else {
+        console.error('[Storage] ❌ KV health check failed, falling back to in-memory storage')
+      }
+    } catch (error) {
+      console.error('[Storage] ❌ KV health check threw error:', error)
+    }
+    
+    // Fallback to in-memory if KV isn't working
+    console.warn('[Storage] ⚠️ Using in-memory storage (data will not persist between deployments)')
+    console.warn('[Storage] ⚠️ Please ensure KV environment variables are properly configured in Vercel')
     return new InMemoryStorage()
   }
   
   // In development, use file storage
-  console.log('Using file storage')
+  console.log('[Storage] Using file storage (development mode)')
   return new FileStorage()
 }
 
@@ -332,10 +367,34 @@ declare global {
   var __storageInstance: StorageAdapter | undefined;
 }
 
-export function getStorageInstance(): StorageAdapter {
-  if (!global.__storageInstance) {
-    global.__storageInstance = getStorage()
-    console.log(`[Storage] Created new storage instance: ${global.__storageInstance.constructor.name}`)
+let storageInitPromise: Promise<StorageAdapter> | null = null
+
+export async function getStorageInstance(): Promise<StorageAdapter> {
+  // If we already have an instance, return it
+  if (global.__storageInstance) {
+    return global.__storageInstance
   }
-  return global.__storageInstance
+  
+  // If we're already initializing, wait for that to complete
+  if (storageInitPromise) {
+    return storageInitPromise
+  }
+  
+  // Start initialization
+  storageInitPromise = (async () => {
+    try {
+      const storage = await getStorage()
+      global.__storageInstance = storage
+      console.log(`[Storage] Created new storage instance: ${storage.constructor.name}`)
+      return storage
+    } catch (error) {
+      console.error('[Storage] Failed to initialize storage:', error)
+      // Fallback to in-memory storage
+      const fallback = new InMemoryStorage()
+      global.__storageInstance = fallback
+      return fallback
+    }
+  })()
+  
+  return storageInitPromise
 }

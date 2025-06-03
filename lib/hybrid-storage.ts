@@ -109,7 +109,7 @@ export class HybridStorageAdapter implements StorageAdapter {
 }
 
 // Factory function with storage optimization
-export function getOptimizedStorage(): StorageAdapter {
-  const baseStorage = getStorageInstance();
+export async function getOptimizedStorage(): Promise<StorageAdapter> {
+  const baseStorage = await getStorageInstance();
   return new HybridStorageAdapter(baseStorage);
 }
