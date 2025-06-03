@@ -7,6 +7,7 @@ export async function GET() {
     environment: {
       isVercel: !!process.env.VERCEL,
       nodeEnv: process.env.NODE_ENV,
+      hasRedisUrl: !!process.env.REDIS_URL,
       hasKvUrl: !!process.env.KV_URL,
       hasKvRestApiUrl: !!process.env.KV_REST_API_URL,
       hasKvRestApiToken: !!process.env.KV_REST_API_TOKEN,

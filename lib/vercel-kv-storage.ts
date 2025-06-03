@@ -333,6 +333,7 @@ export class InMemoryStorage implements StorageAdapter {
 // Factory function to get the appropriate storage adapter
 export async function getStorage(): Promise<StorageAdapter> {
   console.log('[Storage] Determining storage adapter...', {
+    hasRedisUrl: !!process.env.REDIS_URL,
     hasKvUrl: !!process.env.KV_URL,
     hasKvRestApiUrl: !!process.env.KV_REST_API_URL,
     hasKvRestApiToken: !!process.env.KV_REST_API_TOKEN,
@@ -340,26 +341,45 @@ export async function getStorage(): Promise<StorageAdapter> {
     nodeEnv: process.env.NODE_ENV
   })
   
-  // In production on Vercel, always try KV first
+  // In production on Vercel
   if (process.env.VERCEL) {
-    const kvStorage = new VercelKVStorage()
-    
-    // Test if KV is actually working
-    try {
-      const isHealthy = await kvStorage.healthCheck()
-      if (isHealthy) {
-        console.log('[Storage] ✅ Using Vercel KV storage (verified working)')
-        return kvStorage
-      } else {
-        console.error('[Storage] ❌ KV health check failed, falling back to in-memory storage')
+    // First, try direct Redis connection if REDIS_URL is available
+    if (process.env.REDIS_URL || process.env.KV_URL || process.env.REDIS_CONNECTION_STRING) {
+      try {
+        const { RedisStorageAdapter } = await import('./redis-storage')
+        const redisStorage = new RedisStorageAdapter()
+        
+        // Test if Redis is working
+        const isHealthy = await redisStorage.healthCheck()
+        if (isHealthy) {
+          console.log('[Storage] ✅ Using Redis storage (verified working)')
+          return redisStorage
+        } else {
+          console.error('[Storage] ❌ Redis health check failed')
+        }
+      } catch (error) {
+        console.error('[Storage] ❌ Redis initialization failed:', error)
       }
-    } catch (error) {
-      console.error('[Storage] ❌ KV health check threw error:', error)
     }
     
-    // Fallback to in-memory if KV isn't working
+    // Try Vercel KV if available
+    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+      const kvStorage = new VercelKVStorage()
+      
+      try {
+        const isHealthy = await kvStorage.healthCheck()
+        if (isHealthy) {
+          console.log('[Storage] ✅ Using Vercel KV storage (verified working)')
+          return kvStorage
+        }
+      } catch (error) {
+        console.error('[Storage] ❌ KV health check threw error:', error)
+      }
+    }
+    
+    // Fallback to in-memory if nothing works
     console.warn('[Storage] ⚠️ Using in-memory storage (data will not persist between deployments)')
-    console.warn('[Storage] ⚠️ Please ensure KV environment variables are properly configured in Vercel')
+    console.warn('[Storage] ⚠️ Please ensure Redis or KV environment variables are properly configured')
     return new InMemoryStorage()
   }
   
