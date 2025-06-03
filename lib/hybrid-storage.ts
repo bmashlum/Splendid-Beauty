@@ -3,8 +3,9 @@
 // Large images -> Vercel Blob (larger free tier)
 // Metadata compression and optimization
 
-import { StorageAdapter, BlogPost, Event, getStorageInstance } from './vercel-kv-storage';
-// import { uploadImageToBlob, deleteImageFromBlob, shouldUseBlobStorage } from './blob-storage';
+import { StorageAdapter, getStorageInstance } from './vercel-kv-storage';
+import { BlogPost } from '@/app/api/blog/route';
+import { Event } from '@/app/api/events/route';
 
 export class HybridStorageAdapter implements StorageAdapter {
   private kvStorage: StorageAdapter;
@@ -45,13 +46,12 @@ export class HybridStorageAdapter implements StorageAdapter {
   }
 
   private extractBlobUrl(base64OrUrl: string): string {
-    // If it's already a blob URL, return as-is
-    if (base64OrUrl.startsWith('https://')) {
+    // If it's already a URL, return as-is
+    if (base64OrUrl.startsWith('https://') || base64OrUrl.startsWith('/')) {
       return base64OrUrl;
     }
     
-    // For base64, we should have uploaded to blob already
-    // This is a fallback that returns the original
+    // For base64, return as-is for now (future: could upload to blob storage)
     return base64OrUrl;
   }
 
