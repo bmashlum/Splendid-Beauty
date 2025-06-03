@@ -403,6 +403,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const updatedPosts = posts.filter(post => post.id !== id);
+    console.log(`[DELETE] Deleting post ${id}. Posts before: ${posts.length}, after: ${updatedPosts.length}`);
+    
     await saveBlogPosts(updatedPosts);
     
     // Invalidate cache after successful deletion
@@ -410,6 +412,14 @@ export async function DELETE(request: NextRequest) {
     await cache.delete('blog_posts');
     await cache.delete('blog_posts_published');
     await cache.delete('blog_posts_drafts');
+    
+    // Verify deletion
+    const verifyPosts = await getBlogPosts();
+    console.log(`[DELETE] Verification - posts after save: ${verifyPosts.length}`);
+    const stillExists = verifyPosts.some(p => p.id === id);
+    if (stillExists) {
+      console.error(`[DELETE] ERROR: Post ${id} still exists after deletion!`);
+    }
     
     return NextResponse.json({ success: true, message: 'Blog post deleted' });
   } catch (error) {

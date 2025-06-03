@@ -37,7 +37,9 @@ export class FileStorage implements StorageAdapter {
   }
 
   async saveBlogPosts(posts: BlogPost[]): Promise<void> {
+    console.log(`[FileStorage] Saving ${posts.length} blog posts to ${this.blogFile}`)
     await this.fs.writeFile(this.blogFile, JSON.stringify(posts, null, 2))
+    console.log(`[FileStorage] Successfully saved blog posts`)
   }
 
   async getEvents(): Promise<Event[]> {
@@ -315,12 +317,15 @@ export function getStorage(): StorageAdapter {
   return new FileStorage()
 }
 
-// Singleton instance
-let storageInstance: StorageAdapter | null = null
+// Use global to persist storage instance across HMR reloads in development
+declare global {
+  var __storageInstance: StorageAdapter | undefined;
+}
 
 export function getStorageInstance(): StorageAdapter {
-  if (!storageInstance) {
-    storageInstance = getStorage()
+  if (!global.__storageInstance) {
+    global.__storageInstance = getStorage()
+    console.log(`[Storage] Created new storage instance: ${global.__storageInstance.constructor.name}`)
   }
-  return storageInstance
+  return global.__storageInstance
 }
