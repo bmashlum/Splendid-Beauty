@@ -37,9 +37,7 @@ export class FileStorage implements StorageAdapter {
   }
 
   async saveBlogPosts(posts: BlogPost[]): Promise<void> {
-    console.log(`[FileStorage] Saving ${posts.length} blog posts to ${this.blogFile}`)
     await this.fs.writeFile(this.blogFile, JSON.stringify(posts, null, 2))
-    console.log(`[FileStorage] Successfully saved blog posts`)
   }
 
   async getEvents(): Promise<Event[]> {
