@@ -105,8 +105,14 @@ export default function BlogPage() {
     setLoading(true)
     setError(null)
     try {
-      const params = statusFilter !== 'all' ? `?status=${statusFilter}` : ''
-      const response = await fetch(`/api/blog${params}`)
+      const timestamp = new Date().getTime()
+      const params = statusFilter !== 'all' ? `?status=${statusFilter}&t=${timestamp}` : `?t=${timestamp}`
+      const response = await fetch(`/api/blog${params}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        }
+      })
       const data = await response.json()
 
       if (!response.ok) {
@@ -126,6 +132,13 @@ export default function BlogPage() {
   useEffect(() => {
     if (viewMode === 'list') {
       fetchPosts();
+      
+      // Set up polling to refresh data every 5 seconds when on list view
+      const interval = setInterval(() => {
+        fetchPosts();
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [viewMode, fetchPosts]);
 

@@ -160,6 +160,17 @@ export class VercelKVStorage implements StorageAdapter {
     try {
       await this.kv.set('blog-posts', posts)
       console.log(`Saved ${posts.length} blog posts to KV`)
+      
+      // Add a small delay to ensure KV propagation
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Verify the save by reading back
+      const verified = await this.kv.get('blog-posts')
+      if (!verified || (Array.isArray(verified) && verified.length !== posts.length)) {
+        console.warn('KV save verification failed, retrying...')
+        await this.kv.set('blog-posts', posts)
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
     } catch (error) {
       console.error('Error saving blog posts to KV:', error)
       throw error

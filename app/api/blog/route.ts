@@ -147,14 +147,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const status = searchParams.get('status') as BlogPost['status'] | 'all';
+    const noCache = searchParams.get('nocache') === 'true';
+    
+    // Add cache-control headers to prevent browser caching
+    const headers = new Headers({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
     
     let posts = await getBlogPosts();
     
     if (id) {
       const post = posts.find(p => p.id === id);
       return post 
-        ? NextResponse.json({ post })
-        : NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
+        ? NextResponse.json({ post }, { headers })
+        : NextResponse.json({ error: 'Blog post not found' }, { status: 404, headers });
     }
     
     if (status && status !== 'all') {
@@ -163,7 +171,7 @@ export async function GET(request: NextRequest) {
     
     posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
-    return NextResponse.json({ posts });
+    return NextResponse.json({ posts }, { headers });
   } catch (error) {
     console.error("GET /api/blog Error:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -250,9 +258,12 @@ export async function POST(request: NextRequest) {
     
     // Invalidate cache after successful creation
     const cache = getCache();
-    await cache.delete('blog_posts');
-    await cache.delete('blog_posts_published');
-    await cache.delete('blog_posts_drafts');
+    await Promise.all([
+      cache.delete('blog_posts'),
+      cache.delete('blog_posts_published'),
+      cache.delete('blog_posts_drafts'),
+      cache.clear() // Clear entire cache to ensure consistency
+    ]);
     
     return NextResponse.json({ post: newPost }, { status: 201 });
   } catch (error) {
@@ -355,9 +366,12 @@ export async function PUT(request: NextRequest) {
     
     // Invalidate cache after successful update
     const cache = getCache();
-    await cache.delete('blog_posts');
-    await cache.delete('blog_posts_published');
-    await cache.delete('blog_posts_drafts');
+    await Promise.all([
+      cache.delete('blog_posts'),
+      cache.delete('blog_posts_published'),
+      cache.delete('blog_posts_drafts'),
+      cache.clear() // Clear entire cache to ensure consistency
+    ]);
     
     return NextResponse.json({ post: updatedPost });
   } catch (error) {
@@ -409,9 +423,12 @@ export async function DELETE(request: NextRequest) {
     
     // Invalidate cache after successful deletion
     const cache = getCache();
-    await cache.delete('blog_posts');
-    await cache.delete('blog_posts_published');
-    await cache.delete('blog_posts_drafts');
+    await Promise.all([
+      cache.delete('blog_posts'),
+      cache.delete('blog_posts_published'),
+      cache.delete('blog_posts_drafts'),
+      cache.clear() // Clear entire cache to ensure consistency
+    ]);
     
     // Verify deletion
     const verifyPosts = await getBlogPosts();
