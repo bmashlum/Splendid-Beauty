@@ -44,8 +44,8 @@ class ErrorLogger {
     // 4. Vercel Analytics (if hosting on Vercel)
     
     // Example: Send to Google Analytics as an event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'exception', {
+    if (typeof window !== 'undefined' && (window as Window & { gtag?: (...args: unknown[]) => void }).gtag) {
+      (window as Window & { gtag?: (...args: unknown[]) => void }).gtag('event', 'exception', {
         description: error.message,
         fatal: type === 'error'
       })

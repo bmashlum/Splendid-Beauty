@@ -64,10 +64,10 @@ export async function GET() {
 
     // Check KV client availability
     try {
-      const { testKVConnection } = require('@/lib/vercel-kv-client')
-      const kvConnected = await testKVConnection()
+      const kvClientModule = await import('@/lib/vercel-kv-client')
+      const kvConnected = await kvClientModule.testKVConnection()
       diagnostics.tests.kvConnection = kvConnected
-    } catch (error) {
+    } catch {
       diagnostics.tests.kvConnection = false
     }
 

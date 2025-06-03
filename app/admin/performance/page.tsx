@@ -121,6 +121,7 @@ export default function PerformanceDashboard() {
     // Auto-refresh every 30 seconds
     const interval = setInterval(refresh, 30000)
     return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) {

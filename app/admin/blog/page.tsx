@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import {
   Pencil,
   Trash2,
@@ -132,13 +131,6 @@ export default function BlogPage() {
   useEffect(() => {
     if (viewMode === 'list') {
       fetchPosts();
-      
-      // Set up polling to refresh data every 5 seconds when on list view
-      const interval = setInterval(() => {
-        fetchPosts();
-      }, 5000);
-      
-      return () => clearInterval(interval);
     }
   }, [viewMode, fetchPosts]);
 

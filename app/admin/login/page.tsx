@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation' // Keep useRouter for potential other uses if needed
 import { Lock, User, LogIn, AlertTriangle } from 'lucide-react' // Added AlertTriangle for error
 import Image from 'next/image'
 

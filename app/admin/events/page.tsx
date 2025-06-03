@@ -156,7 +156,7 @@ export default function EventsPage() {
                inputDate = format(parsedDisplayDate, 'yyyy-MM-dd');
             }
         }
-    } catch (e) { console.warn(`Could not parse date ${event.date} for editing, using as is.`); }
+    } catch { console.warn(`Could not parse date ${event.date} for editing, using as is.`); }
 
 
     setFormData({

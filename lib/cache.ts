@@ -8,7 +8,7 @@ interface CacheEntry<T> {
 }
 
 class PersistentCache {
-  private memoryCache: Map<string, CacheEntry<any>> = new Map()
+  private memoryCache: Map<string, CacheEntry<unknown>> = new Map()
   private cacheDir: string
   private saveInterval: NodeJS.Timeout | null = null
 
@@ -85,7 +85,7 @@ class PersistentCache {
     try {
       const filename = `${this.sanitizeKey(key)}.json`
       await fs.unlink(path.join(this.cacheDir, filename))
-    } catch (error) {
+    } catch {
       // Ignore file not found errors
     }
   }

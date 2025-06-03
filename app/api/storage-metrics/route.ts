@@ -28,7 +28,7 @@ function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function calculateSize(data: any): number {
+function calculateSize(data: unknown): number {
   // Calculate the size of JSON-serialized data
   try {
     return new TextEncoder().encode(JSON.stringify(data)).length;
@@ -39,7 +39,7 @@ function calculateSize(data: any): number {
 
 export async function GET() {
   try {
-    const storage = getStorageInstance();
+    const storage = await getStorageInstance();
     
     // Get data from storage
     const [blogPosts, events] = await Promise.all([

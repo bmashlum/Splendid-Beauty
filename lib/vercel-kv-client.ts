@@ -1,10 +1,11 @@
 // Vercel KV client singleton with proper error handling
-import { createClient } from '@vercel/kv';
+import { kv } from '@vercel/kv';
 
-let kvClient: any = null;
+let kvClient: typeof import('@vercel/kv').kv | null = null;
+let kvClientInitialized = false;
 
 export function getKVClient() {
-  if (kvClient) {
+  if (kvClientInitialized) {
     return kvClient;
   }
 
@@ -23,35 +24,22 @@ export function getKVClient() {
     isVercel: !!process.env.VERCEL
   });
 
-  // Try to create KV client if we have the necessary environment variables
-  if (kvRestApiUrl && kvRestApiToken) {
+  // In Vercel environment with any KV env vars, use the default kv export
+  if (process.env.VERCEL && (kvUrl || kvRestApiUrl)) {
     try {
-      kvClient = createClient({
-        url: kvRestApiUrl,
-        token: kvRestApiToken,
-      });
-      console.log('[KV] Successfully created KV client with REST API credentials');
+      // The @vercel/kv package automatically uses the environment variables
+      kvClient = kv;
+      kvClientInitialized = true;
+      console.log('[KV] Using default Vercel KV client (auto-configured)');
       return kvClient;
     } catch (error) {
-      console.error('[KV] Failed to create KV client with REST API:', error);
+      console.error('[KV] Failed to use default KV client:', error);
     }
   }
 
-  // Fallback to default KV client (uses KV_URL and other env vars automatically)
-  if (kvUrl) {
-    try {
-      kvClient = createClient({
-        url: kvUrl,
-        token: kvRestApiToken || kvRestApiReadOnlyToken || '',
-      });
-      console.log('[KV] Successfully created KV client with KV_URL');
-      return kvClient;
-    } catch (error) {
-      console.error('[KV] Failed to create KV client with KV_URL:', error);
-    }
-  }
-
+  // If we're not in Vercel or KV isn't available
   console.error('[KV] No valid KV configuration found. KV storage will not be available.');
+  kvClientInitialized = true;
   return null;
 }
 

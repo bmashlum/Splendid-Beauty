@@ -70,22 +70,18 @@ export class FileStorage implements StorageAdapter {
 
 // Vercel KV storage for production
 export class VercelKVStorage implements StorageAdapter {
-  private kv: any
+  private kv: typeof import('@vercel/kv').kv | null
   private initialized = false
   
   constructor() {
-    // Import the KV client
+    // Import the kv directly from @vercel/kv
     try {
-      const { getKVClient } = require('./vercel-kv-client') // eslint-disable-line @typescript-eslint/no-require-imports
-      this.kv = getKVClient()
-      
-      if (this.kv) {
-        console.log('[VercelKVStorage] KV client obtained successfully')
-      } else {
-        console.error('[VercelKVStorage] Failed to obtain KV client - falling back to in-memory storage')
-      }
+      const { kv } = require('@vercel/kv') // eslint-disable-line @typescript-eslint/no-require-imports
+      this.kv = kv
+      console.log('[VercelKVStorage] Using @vercel/kv directly')
     } catch (error) {
-      console.error('[VercelKVStorage] Error importing KV client:', error)
+      console.error('[VercelKVStorage] Error importing @vercel/kv:', error)
+      this.kv = null
     }
   }
 
@@ -111,7 +107,7 @@ export class VercelKVStorage implements StorageAdapter {
             const blogData = await fs.readFile(blogFile, 'utf8')
             await this.kv.set('blog-posts', JSON.parse(blogData))
             console.log('Initialized blog posts in KV')
-          } catch (error) {
+          } catch {
             console.log('No initial blog posts found')
             await this.kv.set('blog-posts', [])
           }
@@ -123,7 +119,7 @@ export class VercelKVStorage implements StorageAdapter {
             const eventsData = await fs.readFile(eventsFile, 'utf8')
             await this.kv.set('events', JSON.parse(eventsData))
             console.log('Initialized events in KV')
-          } catch (error) {
+          } catch {
             console.log('No initial events found')
             await this.kv.set('events', [])
           }
@@ -239,8 +235,19 @@ export class VercelKVStorage implements StorageAdapter {
     }
     
     try {
-      const { testKVConnection } = require('./vercel-kv-client') // eslint-disable-line @typescript-eslint/no-require-imports
-      const isHealthy = await testKVConnection()
+      const testKey = `health:${Date.now()}`
+      const testValue = { test: true, timestamp: new Date().toISOString() }
+      
+      // Write test data
+      await this.kv.set(testKey, testValue, { ex: 60 })
+      
+      // Read it back
+      const retrieved = await this.kv.get(testKey)
+      
+      // Clean up
+      await this.kv.del(testKey)
+      
+      const isHealthy = retrieved?.test === true
       console.log(`[VercelKVStorage] Health check result: ${isHealthy}`)
       return isHealthy
     } catch (error) {
@@ -312,8 +319,8 @@ export class InMemoryStorage implements StorageAdapter {
       // Simple check - can we read and write to memory
       const testData = { test: true }
       const tempPosts = this.blogPosts
-      this.blogPosts = [testData as any as BlogPost]
-      const result = (this.blogPosts[0] as any)?.test === true
+      this.blogPosts = [testData as unknown as BlogPost]
+      const result = (this.blogPosts[0] as Record<string, unknown>)?.test === true
       this.blogPosts = tempPosts
       return result
     } catch (error) {
