@@ -6,6 +6,7 @@ export interface Event {
   imageSrc: string;
   imageAlt: string;
   link: string;
+  position?: number;
   createdAt: string;
   updatedAt: string;
 }

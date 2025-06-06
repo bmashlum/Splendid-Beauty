@@ -24,15 +24,38 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? '100%' : '-100%',
-      opacity: 0
+      opacity: 0,
+      scale: 0.8,
+      rotateY: direction > 0 ? 45 : -45,
+      filter: 'blur(4px)'
     }),
     center: {
       x: 0,
-      opacity: 1
+      opacity: 1,
+      scale: 1,
+      rotateY: 0,
+      filter: 'blur(0px)',
+      transition: {
+        x: { type: "spring", stiffness: 500, damping: 35 },
+        opacity: { duration: 0.3 },
+        scale: { duration: 0.4, ease: [0.32, 0.72, 0, 1] },
+        rotateY: { duration: 0.5, ease: [0.32, 0.72, 0, 1] },
+        filter: { duration: 0.3 }
+      }
     },
     exit: (direction: number) => ({
       x: direction < 0 ? '100%' : '-100%',
-      opacity: 0
+      opacity: 0,
+      scale: 0.8,
+      rotateY: direction < 0 ? 45 : -45,
+      filter: 'blur(4px)',
+      transition: {
+        x: { type: "spring", stiffness: 500, damping: 35 },
+        opacity: { duration: 0.2 },
+        scale: { duration: 0.3 },
+        rotateY: { duration: 0.4 },
+        filter: { duration: 0.2 }
+      }
     })
   };
 
@@ -90,9 +113,24 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
       className="relative w-full overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      style={{ perspective: '1200px' }}
     >
+      {/* Premium background effect */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-r from-[#063f48]/5 to-[#C09E6C]/5"
+        animate={{
+          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        style={{ backgroundSize: '200% 200%' }}
+      />
+      
       {/* Main carousel content */}
-      <div className="w-full">
+      <div className="w-full" style={{ transformStyle: 'preserve-3d' }}>
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentEvent.id}
@@ -101,12 +139,13 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 }
-            }}
             className="w-full"
             onClick={handleEventCardClick}
+            whileHover={{ 
+              scale: 1.02,
+              transition: { duration: 0.3 }
+            }}
+            style={{ transformStyle: 'preserve-3d' }}
           >
             <EventCard 
               {...currentEvent} 
@@ -117,43 +156,93 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
       </div>
       
       {/* Navigation buttons */}
-      <button
+      <motion.button
         onClick={handlePrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#C09E6C]/90 hover:bg-[#C09E6C] transition-colors z-10 shadow-lg"
+        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#C09E6C]/90 hover:bg-[#C09E6C] transition-all z-10 shadow-lg backdrop-blur-sm"
         aria-label="Previous event"
+        whileHover={{ 
+          scale: 1.1,
+          boxShadow: '0 0 20px rgba(192, 158, 108, 0.5)',
+        }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
       >
-        <svg className="h-5 w-5 text-[#063f48]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <motion.svg 
+          className="h-5 w-5 text-[#063f48]" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          whileHover={{ x: -2 }}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m15 19-7-7 7-7" />
-        </svg>
-      </button>
-      <button
+        </motion.svg>
+      </motion.button>
+      <motion.button
         onClick={handleNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#C09E6C]/90 hover:bg-[#C09E6C] transition-colors z-10 shadow-lg"
+        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#C09E6C]/90 hover:bg-[#C09E6C] transition-all z-10 shadow-lg backdrop-blur-sm"
         aria-label="Next event"
+        whileHover={{ 
+          scale: 1.1,
+          boxShadow: '0 0 20px rgba(192, 158, 108, 0.5)',
+        }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
       >
-        <svg className="h-5 w-5 text-[#063f48]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <motion.svg 
+          className="h-5 w-5 text-[#063f48]" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          whileHover={{ x: 2 }}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 5 7 7-7 7" />
-        </svg>
-      </button>
+        </motion.svg>
+      </motion.button>
       
       {/* Enhanced dot indicators */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
+      <motion.div 
+        className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         {events.map((_, index) => (
-          <button
+          <motion.button
             key={index}
             onClick={() => {
               setDirection(index > currentIndex ? 1 : -1);
               setCurrentIndex(index);
             }}
-            className={`h-2 w-2 rounded-full transition-all duration-300 ${
+            className={`rounded-full transition-all duration-300 ${
               index === currentIndex 
-                ? 'bg-[#C09E6C] w-6' 
+                ? 'bg-[#C09E6C]' 
                 : 'bg-[#C09E6C]/50 hover:bg-[#C09E6C]/70'
             }`}
             aria-label={`Go to event ${index + 1}`}
+            animate={{
+              width: index === currentIndex ? 24 : 8,
+              height: 8,
+              scale: index === currentIndex ? 1 : 0.8,
+            }}
+            whileHover={{ 
+              scale: index === currentIndex ? 1 : 1.2,
+              boxShadow: '0 0 10px rgba(192, 158, 108, 0.5)',
+            }}
+            whileTap={{ scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0 }}
+            transition={{
+              opacity: { delay: 0.5 + index * 0.1 },
+              scale: { delay: 0.5 + index * 0.1 },
+              width: { duration: 0.3 },
+              height: { duration: 0.3 }
+            }}
           />
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };

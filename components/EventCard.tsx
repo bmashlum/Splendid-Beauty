@@ -10,10 +10,13 @@ export interface EventCardProps {
   imageSrc: string;
   imageAlt: string;
   link: string;
+  position?: number;
   excerpt?: string; // Optional excerpt field for carousel display
   onClick?: () => void; // Handler for card clicks
   imagePosition?: 'center' | 'top' | 'bottom' | 'left' | 'right'; // Image positioning option
   objectFit?: 'cover' | 'contain'; // Object fit option
+  createdAt: string;
+  updatedAt: string;
 }
 
 const EventCard: React.FC<EventCardProps> = ({

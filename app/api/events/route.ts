@@ -40,6 +40,7 @@ const eventSchema = z.object({
   imageSrc: z.string(), // URL path
   imageAlt: z.string(),
   link: z.string().url().or(z.literal('')).or(z.literal('#')), // Allow empty, #, or valid URL
+  position: z.number().int().positive().optional(),
   imagePosition: z.enum(['center', 'top', 'bottom', 'left', 'right']).default('center'),
   objectFit: z.enum(['cover', 'contain']).default('cover'),
   excerpt: z.string().optional(),
@@ -181,6 +182,7 @@ export async function POST(request: NextRequest) {
       date: formData.get('date') as string, // Expecting "yyyy-MM-dd"
       description: formData.get('description') as string,
       link: formData.get('link') as string,
+      position: formData.get('position') ? parseInt(formData.get('position') as string, 10) : undefined,
       imageAlt: formData.get('imageAlt') as string,
       imagePosition: formData.get('imagePosition') as Event['imagePosition'],
       objectFit: formData.get('objectFit') as Event['objectFit'],
@@ -217,6 +219,7 @@ export async function POST(request: NextRequest) {
       imageSrc,
       imageAlt: rawData.imageAlt || rawData.title, // Default alt text to title
       link: rawData.link || '#',
+      position: rawData.position || 1,
       imagePosition: rawData.imagePosition || 'center',
       objectFit: rawData.objectFit || 'cover',
       excerpt: rawData.excerpt || rawData.description.substring(0, 140) + (rawData.description.length > 140 ? '...' : ''),
@@ -281,6 +284,7 @@ export async function PUT(request: NextRequest) {
       date: formData.get('date') as string, // Expecting "yyyy-MM-dd"
       description: formData.get('description') as string,
       link: formData.get('link') as string,
+      position: formData.get('position') ? parseInt(formData.get('position') as string, 10) : undefined,
       imageAlt: formData.get('imageAlt') as string,
       imagePosition: formData.get('imagePosition') as Event['imagePosition'],
       objectFit: formData.get('objectFit') as Event['objectFit'],
@@ -318,6 +322,7 @@ export async function PUT(request: NextRequest) {
       date: rawData.date || existingEvent.date,
       description: rawData.description || existingEvent.description,
       link: rawData.link !== undefined ? rawData.link : existingEvent.link, // Handle empty string for link
+      position: rawData.position !== undefined ? rawData.position : existingEvent.position,
       imageAlt: rawData.imageAlt || rawData.title || existingEvent.title,
       imagePosition: rawData.imagePosition || existingEvent.imagePosition,
       objectFit: rawData.objectFit || existingEvent.objectFit,

@@ -23,7 +23,19 @@ const EventsSection: React.FC = () => {
         }
         
         const data = await response.json();
-        setEvents(data.events || []);
+        // Sort events by position (lower numbers first), then by creation date
+        const sortedEvents = (data.events || []).sort((a: EventCardProps, b: EventCardProps) => {
+          // First sort by position if both have positions
+          if (a.position !== undefined && b.position !== undefined) {
+            return a.position - b.position;
+          }
+          // If only one has position, it comes first
+          if (a.position !== undefined) return -1;
+          if (b.position !== undefined) return 1;
+          // If neither has position, sort by creation date (newest first)
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setEvents(sortedEvents);
       } catch (err) {
         console.error('Error fetching events:', err);
         setError('Failed to load events. Please try again later.');

@@ -28,6 +28,7 @@ interface Event {
   imageSrc: string;
   imageAlt: string;
   link: string;
+  position?: number;
   imagePosition?: 'center' | 'top' | 'bottom' | 'left' | 'right';
   objectFit?: 'cover' | 'contain';
   createdAt: string;
@@ -41,6 +42,7 @@ interface FormDataState {
   description: string;
   excerpt: string;
   link: string;
+  position: number;
   imageAlt: string;
   imagePosition: 'center' | 'top' | 'bottom' | 'left' | 'right';
   objectFit: 'cover' | 'contain';
@@ -53,6 +55,7 @@ const initialFormData: FormDataState = {
   description: '',
   excerpt: '',
   link: '',
+  position: 1,
   imageAlt: '',
   imagePosition: 'center',
   objectFit: 'cover',
@@ -166,6 +169,7 @@ export default function EventsPage() {
       description: event.description,
       excerpt: event.excerpt || '',
       link: event.link,
+      position: event.position || 1,
       imageAlt: event.imageAlt,
       imagePosition: event.imagePosition || 'center',
       objectFit: event.objectFit || 'cover',
@@ -368,9 +372,14 @@ export default function EventsPage() {
                 />
               </div>
               <div className="p-4">
-                <h3 className="text-lg font-medium text-gray-900 truncate group-hover:text-[#063f48] transition-colors">
-                  {event.title}
-                </h3>
+                <div className="flex items-start justify-between">
+                  <h3 className="text-lg font-medium text-gray-900 truncate group-hover:text-[#063f48] transition-colors flex-1">
+                    {event.title}
+                  </h3>
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#063f48] text-white">
+                    #{event.position || 'N/A'}
+                  </span>
+                </div>
                 <p className="mt-1 text-sm text-gray-500 flex items-center">
                   <Calendar className="mr-1 h-4 w-4" />
                   {formatDateForDisplay(event.date)}
@@ -440,6 +449,11 @@ export default function EventsPage() {
                         <div>
                           <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date *</label>
                           <input type="date" name="date" id="date" value={formData.date} onChange={handleChange} required className="admin-input mt-1" />
+                        </div>
+                        <div>
+                          <label htmlFor="position" className="block text-sm font-medium text-gray-700">Position in Carousel</label>
+                          <input type="number" name="position" id="position" value={formData.position} onChange={handleChange} min="1" className="admin-input mt-1" placeholder="1" />
+                          <p className="mt-1 text-xs text-gray-500">Lower numbers appear first in the carousel (1 = first, 2 = second, etc.)</p>
                         </div>
                         <div>
                           <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description *</label>
