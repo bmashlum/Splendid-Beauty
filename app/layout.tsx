@@ -210,6 +210,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <main className="flex-grow">
             {children}
           </main>
+          <footer className="bg-white border-t border-gray-200 py-4 px-6 text-center">
+            <p className="text-xs text-gray-500">
+              &copy; {new Date().getFullYear()} Splendid Beauty Bar & Co. All rights reserved. | Website by Bradford Mashlum
+            </p>
+          </footer>
         </ThemeProvider>
         
         {/* Google Analytics - Optimized loading */}

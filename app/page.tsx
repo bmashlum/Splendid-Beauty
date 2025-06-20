@@ -44,6 +44,10 @@ const FloatingChatWidget = dynamic(() => import('@/components/FloatingChatWidget
   ssr: false // Client-only component
 })
 
+const HashScroller = dynamic(() => import('@/components/HashScroller'), {
+  ssr: false // Client-only component
+})
+
 // Create motion components after all imports
 const MotionSection = motion.section
 
@@ -120,7 +124,8 @@ const staticImageImports: Record<string, () => Promise<{ default: StaticImageDat
   'perm-makeup': () => import('@/public/images/perm_makeup.webp'),
   'perm-medical': () => import('@/public/images/perm_medical.webp'),
   'facial': () => import('@/public/images/facial.webp'),
-  'eyelash': () => import('@/public/images/eyelash.webp')
+  'eyelash': () => import('@/public/images/eyelash.webp'),
+  'terms-conditions': () => import('@/public/images/28.webp')
 };
 
 // Add image quality configuration
@@ -128,7 +133,7 @@ const imageQualityConfig: Record<string, number> = {
   'about': 95, 'award-1': 95, 'award-2': 95, 'we-do-that': 95, 'book-now': 95,
   'true-beauty': 90, 'portfolio': 90, 'shop': 90, 'hair-studio': 90, 'academy': 90,
   'policies': 85, 'connect': 95, 'financing': 85, 'perm-makeup': 90,
-  'perm-medical': 90, 'facial': 90, 'eyelash': 90
+  'perm-medical': 90, 'facial': 90, 'eyelash': 90, 'terms-conditions': 100
 };
 
 // Add priority configuration for above-the-fold images
@@ -242,7 +247,8 @@ const getAltText = (id: string): string => {
     'perm-makeup': 'Permanent makeup services including microblading at Splendid Beauty Bar',
     'perm-medical': 'Medical-grade permanent makeup treatments at Splendid Beauty Bar',
     'facial': 'Professional facial treatments and skin care at Splendid Beauty Bar',
-    'eyelash': 'Eyelash extensions and enhancements at Splendid Beauty Bar & Co.'
+    'eyelash': 'Eyelash extensions and enhancements at Splendid Beauty Bar & Co.',
+    'terms-conditions': 'Terms and conditions for Splendid Beauty Bar & Co.'
   };
   
   return altTexts[id] || `${id} beauty service at Splendid Beauty Bar`;
@@ -280,6 +286,7 @@ const sectionsData: SectionData[] = [
   { id: 'perm-medical', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
   { id: 'facial', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
   { id: 'eyelash', objectPosition: 'object-center xl:object-contain' }, // Using contain on XL screens
+  { id: 'terms-conditions', objectPosition: 'object-center' }, // Terms & conditions image
 ];
 
 // --- Animation Variants ---
@@ -483,7 +490,7 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
                   <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white transition-transform duration-200 hover:scale-110"><svg viewBox="0 0 320 512" fill="currentColor" className="h-6 w-6"><path d="M279.14 288l14.22-92.66h-88.91V127.91c0-25.35 12.42-50.06 52.24-50.06H293V6.26S259.5 0 225.36 0c-73.22 0-121.09 44.38-121.09 124.72v70.62H22.89V288h81.38v224h100.2V288z" /></svg></a>
                     <a href={INSTAGRAM_PAGE_URL} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white transition-transform duration-200 hover:scale-110"><svg viewBox="0 0 448 512" fill="currentColor" className="h-6 w-6"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg></a>
                     <a href="https://linktr.ee/splendidbeautybarandco" target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white transition-transform duration-200 hover:scale-110"><svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6"><path d="m13.736 5.853 4.005-4.117 2.325 2.38-4.2 4.005h5.908v3.305h-5.937l4.229 4.108-2.325 2.334-5.74-5.769-5.741 5.769-2.325-2.325 4.229-4.108H2.226V8.121h5.909l-4.2-4.004 2.324-2.381 4.005 4.117V0h3.472zm-3.472 10.306h3.472V24h-3.472z"/></svg></a>
-                    <a href="https://blvd.me/splendid-beauty-bar/gift-cards" target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white transition-transform duration-200 hover:scale-110"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8H3m18 4H3m-1 0h20a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1zm10-4V4a2 2 0 00-2-2 2 2 0 00-2 2 2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 00-2-2 2 2 0 00-2 2v4"/></svg></a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onGiftCardClick(); setIsConnectFabExpanded(false); }} className="flex h-11 w-11 items-center justify-center rounded-full bg-[#063f48] text-white transition-transform duration-200 hover:scale-110"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8H3m18 4H3m-1 0h20a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1zm10-4V4a2 2 0 00-2-2 2 2 0 00-2 2 2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 00-2-2 2 2 0 00-2 2v4"/></svg></a>
                   </div>
                   <button
                     onClick={() => { onBookingClick(); setIsConnectFabExpanded(false); }}
@@ -540,10 +547,26 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
                   {
                     href: "https://blvd.me/splendid-beauty-bar/gift-cards", label: "Gift Card", IconSvg: (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6 text-white mx-auto"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8H3m18 4H3m-1 0h20a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1v-8a1 1 0 011-1zm10-4V4a2 2 0 00-2-2 2 2 0 00-2 2 2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 00-2-2 2 2 0 00-2 2v4"/></svg>
-                    )
+                    ),
+                    onClick: onGiftCardClick // Add onClick handler for iframe
                   }
                 ].map(social => (
-                  <a key={social.label} href={social.href} onClick={(e) => onSocialClick(e, social.href)} target="_blank" rel="noopener noreferrer" className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#063f48] transition-transform duration-200 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400" aria-label={social.label}>
+                  <a 
+                    key={social.label} 
+                    href={social.label === "Gift Card" ? "#" : social.href} 
+                    onClick={(e) => {
+                      if (social.label === "Gift Card" && social.onClick) {
+                        e.preventDefault();
+                        social.onClick();
+                      } else {
+                        onSocialClick(e, social.href);
+                      }
+                    }} 
+                    target={social.label === "Gift Card" ? undefined : "_blank"} 
+                    rel={social.label === "Gift Card" ? undefined : "noopener noreferrer"} 
+                    className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#063f48] transition-transform duration-200 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-400" 
+                    aria-label={social.label}
+                  >
                     {social.IconSvg}
                   </a>
                 ))}
@@ -805,6 +828,7 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
           </div>
         </>
       )}
+
     </section>
   );
 };
@@ -994,6 +1018,9 @@ export default function Home() {
         
         {/* Floating Chat Widget */}
         <FloatingChatWidget />
+        
+        {/* Hash Scroller for handling anchor links */}
+        <HashScroller />
       </div>
     </ErrorBoundary>
   );

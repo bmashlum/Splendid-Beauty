@@ -19,13 +19,13 @@ const predefinedQuestions: Question[] = [
     id: '1',
     category: 'Booking',
     question: 'How do I book an appointment?',
-    answer: 'You can book your appointment by clicking the "Book Now" buttons throughout our website, or call/text us at 678-789-4200. We use Boulevard for online booking which allows you to select your service, preferred professional, and time slot.'
+    answer: 'Book online via "Book Now" buttons or call/text 678-789-4200. We use Boulevard for scheduling.'
   },
   {
     id: '2',
     category: 'Booking',
-    question: 'What is your cancellation policy?',
-    answer: 'We require 24-hour notice for appointment cancellations. Late cancellations or no-shows may result in a fee. Please review our complete policies on the Policies page for more details.'
+    question: 'What is your cancellation & rescheduling policy?',
+    answer: '48 hour notice required. Late cancels/reschedules/no-shows may be charged. Full details on our Policies page.'
   },
   
   // Services
@@ -33,31 +33,31 @@ const predefinedQuestions: Question[] = [
     id: '3',
     category: 'Services',
     question: 'What services do you offer?',
-    answer: 'We offer luxury beauty services including: Cosmetic & Paramedical Tattooing (microblading, nano strokes, areola reconstruction), Facials & Esthetics, Eyelash Extensions & Lifts, Body Grooming, Spray Tanning, and more. We\'re also expanding to include filler, injections, and hormone therapy soon!'
+    answer: 'Cosmetic/paramedical tattooing, facials, peels, lash extensions, lash lift and tints, spray tans, body & brow grooming, training, and more. Injectables and hormone therapy coming soon.'
   },
   {
     id: '4',
     category: 'Services',
     question: 'What is permanent makeup?',
-    answer: 'Permanent makeup includes microblading, nano strokes, lip blush, and lash line enhancement. These are cosmetic tattoo techniques that create natural-looking enhancements. Results typically last 1-3 years depending on skin type and aftercare.'
+    answer: 'Cosmetic tattooing simulates or enhances your natural brows, lips, eyeliner, etc. Lasts 1–3+ years depending on skin and aftercare. We also offer additional cosmetic tattooing such as freckles, beauty marks, and cheek blush.'
   },
   {
     id: '5',
     category: 'Services',
     question: 'Do you offer medical tattooing?',
-    answer: 'Yes! We offer paramedical tattooing including areola reconstruction, scar revision, stretch mark camouflage, scalp micropigmentation, and beauty marks. These services help restore confidence after medical procedures or injuries.'
+    answer: 'Yes—areola reconstruction, scar/stretch mark camouflage, scalp micropigmentation, and hypopigmentation revision.'
   },
   {
     id: '6',
     category: 'Services',
     question: 'What facial treatments are available?',
-    answer: 'We offer various facials including hydrating, anti-aging, acne treatments, chemical peels, dermaplaning, and customized treatments for your specific skin concerns. Each facial is tailored to improve fine lines, wrinkles, texture, and overall skin health.'
+    answer: 'Hydrating, anti-aging, acne facials, peels, dermaplaning, and custom skin treatments, both pampering and resurfacing services are available.'
   },
   {
     id: '7',
     category: 'Services',
     question: 'What eyelash services do you provide?',
-    answer: 'We offer lash lifts with tinting, classic and volume eyelash extensions, and maintenance services. Lash lifts last 6-8 weeks, while extensions require fills every 2-3 weeks for best results.'
+    answer: 'Lash lifts, tints, light cured classic/ hybrid/volume extensions, and maintenance fills.'
   },
   
   // Pricing & Payment
@@ -65,19 +65,19 @@ const predefinedQuestions: Question[] = [
     id: '8',
     category: 'Pricing',
     question: 'Do you offer financing?',
-    answer: 'Yes! We partner with Cherry Financing to offer flexible payment plans. You can apply risk-free with no impact to your credit score. Click the "Financing" section on our website to learn more and apply.'
+    answer: 'Yes—Cherry Financing with no credit impact. Apply through our website.'
   },
   {
     id: '9',
     category: 'Pricing',
     question: 'What payment methods do you accept?',
-    answer: 'We accept cash, all major credit cards, and Cherry Financing. Payment is due at the time of service. Gift certificates are also available for purchase.'
+    answer: 'Cash, all major cards, Cherry Financing, and our in-house gift certificates.'
   },
   {
     id: '10',
     category: 'Pricing',
     question: 'Can I buy a gift certificate?',
-    answer: 'Yes! Gift certificates make perfect gifts. You can purchase them online through our booking system or in-person at our studio. They can be used for any service we offer.'
+    answer: 'Yes—available online or in person. Good for any service.'
   },
   
   // Location & Contact
@@ -85,19 +85,19 @@ const predefinedQuestions: Question[] = [
     id: '11',
     category: 'Contact',
     question: 'Where are you located?',
-    answer: 'We\'re located at 104 Covington St. Loganville, GA 30052. You can find us easily using the map on our Connect section, and there\'s convenient parking available.'
+    answer: '104 Covington St, Loganville, GA 30052. Map is on our site. Parking available.'
   },
   {
     id: '12',
     category: 'Contact',
     question: 'What are your hours?',
-    answer: 'Our hours vary by service and professional. When booking online, you\'ll see all available time slots. You can also call/text 678-789-4200 to inquire about specific availability.'
+    answer: 'Vary by provider. Booking site shows availability or text/call us.'
   },
   {
     id: '13',
     category: 'Contact',
     question: 'How can I contact you?',
-    answer: 'You can reach us by: Phone/Text: 678-789-4200, Email: Service@SplendidBeautyBar.co, or through our social media @SplendidBeautyBarAndCo on Instagram and Facebook.'
+    answer: 'Call/text 678-789-4200, email Service@SplendidBeautyBar.co, or DM us on socials.'
   },
   
   // Academy & Training
@@ -105,7 +105,7 @@ const predefinedQuestions: Question[] = [
     id: '14',
     category: 'Academy',
     question: 'Do you offer beauty training?',
-    answer: 'Yes! Splendid Beauty Academy offers professional training and apprenticeships. We provide certificates of completion and hands-on training. Courses start at $200. Text 678-789-4200 for more information about our current programs.'
+    answer: 'Yes—certified courses and hands-on apprenticeships and course training starting.'
   },
   
   // Hair Studio
@@ -113,7 +113,7 @@ const predefinedQuestions: Question[] = [
     id: '15',
     category: 'Hair Studio',
     question: 'Do you rent booth space?',
-    answer: 'Yes! Our Hair Studio offers booth rental opportunities for beauty professionals. Build your beauty empire with us - we provide the space, you bring your business. Contact us to learn about availability and rates.'
+    answer: 'Yes—Hair Studio and service booth rentals available. Contact us for current rates and openings.'
   },
   
   // Policies
@@ -121,13 +121,13 @@ const predefinedQuestions: Question[] = [
     id: '16',
     category: 'Policies',
     question: 'Are you inclusive of all clients?',
-    answer: 'Absolutely! We believe "Beauty for Everybody" and maintain a strict non-discrimination policy. Everyone deserves to feel beautiful, and we welcome all clients regardless of background, identity, or ability.'
+    answer: '100%. We welcome all people and have a strict non-discrimination policy.'
   },
   {
     id: '17',
     category: 'Policies',
     question: 'What safety measures do you have?',
-    answer: 'Your safety is our priority. We maintain strict sanitation protocols, use single-use items when appropriate, and follow all health department regulations. Our studio guidelines ensure a safe, clean environment for all clients.'
+    answer: 'Strict sanitation, single-use tools, and compliance with state, county, and health department standards.'
   },
   
   // General
@@ -135,19 +135,19 @@ const predefinedQuestions: Question[] = [
     id: '18',
     category: 'General',
     question: 'Who are the founders?',
-    answer: 'Splendid Beauty Bar was founded by Christine Eaton and Eden York, who believe in making luxury beauty services accessible to everyone. They\'ve created a welcoming space where "Beauty for Everybody" is more than a motto - it\'s our mission.'
+    answer: 'Christine Eaton and Eden York—focused on inclusive, luxury beauty for all.'
   },
   {
     id: '19',
     category: 'General',
     question: 'Can I see examples of your work?',
-    answer: 'Yes! Visit our Portfolio section or follow us @SplendidBeautyBarAndCo on Instagram and Facebook to see our latest work, client transformations, and updates.'
+    answer: 'Yes—check our Portfolio or follow us @SplendidBeautyBarAndCo on IG/FB.'
   },
   {
     id: '20',
     category: 'General',
     question: 'Do you sell beauty products?',
-    answer: 'Yes! We have an online shop featuring the products we actually use and that our clients always ask about. Visit our Shop section or Linktree for our curated collection of professional beauty products.'
+    answer: 'Yes—online shop features our go-to professional products. Link in bio or Shop section.'
   }
 ]
 

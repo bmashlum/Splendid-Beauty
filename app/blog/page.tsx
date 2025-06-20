@@ -20,14 +20,14 @@ import {
   Home,
   X,
   Clock,
-  Sparkles,
   TrendingUp,
   BookOpen,
   Heart,
   Share2,
   Instagram,
   Globe,
-  Mail
+  Mail,
+  Sparkles
 } from 'lucide-react';
 
 // Type for blog posts (ensure this matches your actual type structure)
@@ -103,141 +103,92 @@ const BlogHero: React.FC<{ onSearch: (query: string) => void; initialQuery?: str
   };
 
   return (
-    <motion.div className="relative w-full min-h-[500px] lg:min-h-[600px] flex items-center justify-center overflow-hidden pt-20">
-      {/* Enhanced gradient background with multiple layers */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#063f48] via-[#063f48]/95 to-[#052b31]" />
-      
-      {/* Animated geometric pattern overlay */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gMTAwIDAgTCAwIDAgMCAxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0MwOUU2QyIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMyIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] fixed" />
+    <>
+      {/* Hero Image - Clean, no overlays */}
+      <div className="relative w-full pt-20 bg-white">
+        <div className="relative w-full">
+          <Image
+            src="/images/blog/splendid-standard-header.jpg"
+            alt="Splendid Beauty Blog"
+            width={1920}
+            height={600}
+            className="w-full h-auto"
+            priority
+            quality={100}
+            sizes="100vw"
+          />
+        </div>
       </div>
       
-      {/* Static golden accents - no animation for better performance */}
-      <div className="absolute top-10 left-10 w-64 h-64 bg-[#C09E6C]/10 rounded-full blur-2xl" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#C09E6C]/5 rounded-full blur-2xl" />
-      
-      <div className="relative z-30 max-w-6xl mx-auto px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-8"
-        >
-          {/* Static sparkle icon - no rotation for better performance */}
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-[#C09E6C]/20 border border-[#C09E6C]/30">
-            <Sparkles className="w-8 h-8 text-[#C09E6C]" />
-          </div>
-          
-          <div className="space-y-2 mb-4">
-            <motion.div 
-              className="h-0.5 w-24 bg-gradient-to-r from-transparent via-[#C09E6C] to-transparent mx-auto"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 1, delay: 0.3 }}
-            />
-            <h3 className="text-[#C09E6C] font-medium tracking-[0.2em] text-sm uppercase">Beauty Insights & Expertise</h3>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 font-serif leading-tight">
-            <span className="inline-block">
-              <motion.span
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent"
-              >
-                Splendid Beauty
-              </motion.span>
-            </span>
-            <br />
-            <motion.span
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="text-[#C09E6C] text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
-            >
-              Blog & Journal
-            </motion.span>
-          </h1>
-          
-          <motion.p 
-            className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+      {/* Search Bar Section - Below the image */}
+      <div className="bg-white py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative"
           >
-            Discover transformative beauty insights, expert skincare advice, and the latest trends 
-            from our team of professional aestheticians and beauty specialists.
-          </motion.p>
-        </motion.div>
-        
-        {/* Enhanced search bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-12 relative max-w-2xl mx-auto"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#C09E6C]/20 via-[#C09E6C]/10 to-[#C09E6C]/20 rounded-full blur-xl" />
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <div className="relative group">
-              <input
-                type="text"
-                placeholder="Search beauty tips, skincare routines, trends..."
-                className="w-full py-4 pl-6 pr-14 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#C09E6C]/50 focus:border-[#C09E6C]/50 focus:bg-white/15 transition-all duration-300 text-base group-hover:bg-white/15"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search blog articles"
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                {searchQuery && (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    type="button"
-                    onClick={clearSearch}
-                    className="p-2 text-white/60 hover:text-white transition-colors rounded-full hover:bg-white/10"
-                    aria-label="Clear search"
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="Search beauty tips, skincare routines, trends..."
+                  className="w-full py-4 pl-6 pr-14 rounded-full bg-gray-100 border border-gray-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#C09E6C]/50 focus:border-[#C09E6C] focus:bg-white transition-all duration-300 text-base"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search blog articles"
+                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                  {searchQuery && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      type="button"
+                      onClick={clearSearch}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-4 w-4" />
+                    </motion.button>
+                  )}
+                  <button
+                    type="submit"
+                    className="p-2.5 bg-[#063f48] hover:bg-[#052b31] text-white rounded-full transition-all duration-300 transform hover:scale-105"
+                    aria-label="Submit search"
                   >
-                    <X className="h-4 w-4" />
-                  </motion.button>
-                )}
-                <button
-                  type="submit"
-                  className="p-2.5 bg-[#C09E6C] hover:bg-[#d4b988] text-[#063f48] rounded-full transition-all duration-300 transform hover:scale-105"
-                  aria-label="Submit search"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
+                    <Search className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
-          
-          {/* Popular search tags */}
-          <motion.div 
-            className="mt-4 flex flex-wrap items-center justify-center gap-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
-          >
-            <span className="text-white/50 text-sm">Popular:</span>
-            {['Skincare', 'Facials', 'Anti-aging', 'Natural Beauty'].map((tag, index) => (
-              <button
-                key={tag}
-                onClick={() => {
-                  setSearchQuery(tag);
-                  handleSearchSubmit({ preventDefault: () => {} } as React.FormEvent);
-                }}
-                className="px-3 py-1 text-sm bg-white/10 hover:bg-white/20 text-white/70 hover:text-white rounded-full transition-all duration-300 backdrop-blur-sm border border-white/10"
-              >
-                {tag}
-              </button>
-            ))}
+            </form>
+            
+            {/* Popular search tags */}
+            <motion.div 
+              className="mt-4 flex flex-wrap items-center justify-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <span className="text-gray-600 text-sm">Popular:</span>
+              {['Skincare', 'Facials', 'Anti-aging', 'Natural Beauty'].map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    setSearchQuery(tag);
+                    handleSearchSubmit({ preventDefault: () => {} } as React.FormEvent);
+                  }}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-full transition-all duration-300 border border-gray-200"
+                >
+                  {tag}
+                </button>
+              ))}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </>
   );
 };
 
@@ -493,92 +444,6 @@ const LatestPosts: React.FC<{ posts: BlogPost[]; postsToShow?: number }> = ({ po
   );
 };
 
-const Newsletter: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add newsletter signup logic here
-    // Newsletter signup handled here
-  };
-  
-  return (
-    <FadeInView className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <motion.div 
-        className="relative overflow-hidden rounded-3xl"
-        whileHover={{ scale: 1.01 }}
-        transition={{ duration: 0.3 }}
-      >
-        {/* Multi-layer gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#063f48] via-[#063f48]/95 to-[#052b31]" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#C09E6C]/20 via-transparent to-[#C09E6C]/10" />
-        
-        {/* Animated pattern overlay */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImRvdHMiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0iI0MwOUU2QyIgb3BhY2l0eT0iMC41Ii8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2RvdHMpIi8+PC9zdmc+')] fixed" />
-        </div>
-        
-        {/* Static accent circle */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#C09E6C]/20 rounded-full blur-2xl opacity-25" />
-        
-        <div className="relative z-10 px-6 py-16 md:px-12 md:py-20 lg:py-24">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-white/10 border border-white/20">
-                <Heart className="w-8 h-8 text-[#C09E6C]" />
-              </div>
-              
-              <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-                Join Our Beauty Community
-              </h3>
-              <p className="text-white/80 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-                Get exclusive access to professional beauty tips, special offers, and be the first to know about our latest treatments and events.
-              </p>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
-              <div className="relative">
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-[#C09E6C]/30 to-[#C09E6C]/10 rounded-full blur-xl"
-                  animate={{ opacity: isHovered ? 0.8 : 0.5 }}
-                />
-                
-                <div 
-                  className="relative flex flex-col sm:flex-row gap-3 sm:gap-0 sm:bg-white/10 sm:backdrop-blur-md sm:p-1.5 sm:rounded-full sm:border sm:border-white/20"
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                >
-                  <input
-                    type="email"
-                    placeholder="Enter your email address"
-                    className="bg-white/10 backdrop-blur-sm sm:bg-transparent flex-grow px-6 py-4 rounded-full sm:rounded-l-full text-white placeholder-white/50 focus:outline-none focus:bg-white/15 transition-all duration-300"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    aria-label="Email for newsletter"
-                  />
-                  <motion.button 
-                    type="submit" 
-                    className="bg-[#C09E6C] hover:bg-[#d4b988] text-[#063f48] px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Subscribe Now
-                  </motion.button>
-                </div>
-              </div>
-              
-              <p className="text-center text-white/50 text-sm mt-4">
-                Join 10,000+ beauty enthusiasts. No spam, unsubscribe anytime.
-              </p>
-            </form>
-          </div>
-        </div>
-      </motion.div>
-    </FadeInView>
-  );
-};
 
 const BackToTopButton: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -617,80 +482,6 @@ const BackToTopButton: React.FC = () => {
   );
 };
 
-const PageFooter: React.FC = () => {
-  const socialLinks = [
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Globe, href: '#', label: 'Website' },
-    { icon: Mail, href: '#', label: 'Email' },
-  ];
-  
-  return (
-    <footer className="mt-20 border-t border-gray-200/30 bg-gradient-to-b from-gray-50/50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Brand Column */}
-          <div className="text-center md:text-left">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">Splendid Beauty</h4>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Your trusted partner in beauty and wellness since 2020.
-            </p>
-          </div>
-          
-          {/* Quick Links */}
-          <div className="text-center">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">Quick Links</h4>
-            <div className="space-y-2">
-              <Link href="/" className="block text-sm text-gray-600 hover:text-[#C09E6C] transition-colors">
-                Home
-              </Link>
-              <Link href="/blog" className="block text-sm text-gray-600 hover:text-[#C09E6C] transition-colors">
-                Blog
-              </Link>
-              <Link href="/contact" className="block text-sm text-gray-600 hover:text-[#C09E6C] transition-colors">
-                Contact
-              </Link>
-            </div>
-          </div>
-          
-          {/* Social Links */}
-          <div className="text-center md:text-right">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">Follow Us</h4>
-            <div className="flex items-center justify-center md:justify-end gap-3">
-              {socialLinks.map(({ icon: Icon, href, label }) => (
-                <motion.a
-                  key={label}
-                  href={href}
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-[#C09E6C] text-gray-600 hover:text-white transition-all duration-300"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label={label}
-                >
-                  <Icon className="h-5 w-5" />
-                </motion.a>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        <div className="pt-8 border-t border-gray-200/30">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-500">
-              &copy; {new Date().getFullYear()} Splendid Beauty Bar & Co. All rights reserved.
-            </p>
-            <nav className="flex items-center gap-4">
-              <Link href="/privacy" className="text-xs text-gray-500 hover:text-[#C09E6C] transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="text-xs text-gray-500 hover:text-[#C09E6C] transition-colors">
-                Terms of Service
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-};
 
 const BlogContent: React.FC = () => {
   const router = useRouter();
@@ -881,8 +672,6 @@ const BlogContent: React.FC = () => {
           )}
         </>
       )}
-      <Newsletter />
-      <PageFooter />
     </motion.div>
   );
 };

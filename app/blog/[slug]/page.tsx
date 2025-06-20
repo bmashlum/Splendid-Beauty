@@ -347,14 +347,6 @@ export default function BlogPostPage() {
                   <BookOpen className="w-4 h-4" />
                   {estimateReadingTime(post.content)}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Heart className="w-4 h-4" />
-                  234 likes
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <MessageCircle className="w-4 h-4" />
-                  12 comments
-                </span>
               </div>
             </div>
           </motion.div>
@@ -397,35 +389,6 @@ export default function BlogPostPage() {
             <ShareButtons title={post.title} url={shareUrl} />
           </div>
 
-          {/* Newsletter CTA */}
-          <motion.div 
-            className="bg-gradient-to-br from-[#063f48] to-[#052b31] rounded-2xl p-8 md:p-12 text-white text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Heart className="w-12 h-12 text-[#C09E6C] mx-auto mb-4" />
-            <h3 className="text-2xl font-bold mb-3">Enjoyed this article?</h3>
-            <p className="text-white/80 mb-6 max-w-md mx-auto">
-              Subscribe to our newsletter for more beauty tips and exclusive content delivered to your inbox.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="flex-grow px-5 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:bg-white/20 transition-colors"
-                required
-              />
-              <motion.button
-                type="submit"
-                className="px-8 py-3 bg-[#C09E6C] hover:bg-[#d4b988] text-[#063f48] rounded-full font-semibold transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Subscribe
-              </motion.button>
-            </form>
-          </motion.div>
 
           {/* Navigation */}
           <div className="flex items-center justify-between pt-8 border-t border-gray-200">
