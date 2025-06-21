@@ -8,7 +8,9 @@ const playedVideos = new Set<string>();
 
 interface AnimatedImageProps {
     imagePath: string;
+    mobileImagePath?: string;
     videoPath: string;
+    mobileVideoPath?: string;
     alt: string;
     sizes?: string;
     objectPosition?: string;
@@ -19,7 +21,9 @@ interface AnimatedImageProps {
 
 const AnimatedImage = memo(function AnimatedImage({
     imagePath,
+    mobileImagePath,
     videoPath,
+    mobileVideoPath,
     alt,
     // Default sizes: 100vw up to 1279px, then 80vw for larger screens
     sizes = "(max-width: 1279px) 100vw, 80vw",
@@ -54,7 +58,8 @@ const AnimatedImage = memo(function AnimatedImage({
             setIsVideoSupported(isVideoTypeSupported && !prefersReducedMotion);
 
             // Check if this video has already been played
-            if (playedVideos.has(videoPath)) {
+            const currentVideoPath = (window.innerWidth <= 767 && mobileVideoPath) ? mobileVideoPath : videoPath;
+            if (playedVideos.has(currentVideoPath)) {
                 setHasVideoPlayedOnce(true);
                 setHasVideoEnded(true);
             }
@@ -66,7 +71,7 @@ const AnimatedImage = memo(function AnimatedImage({
                 clearTimeout(playAttemptTimeoutRef.current);
             }
         };
-    }, [videoPath]);
+    }, [videoPath, mobileVideoPath]);
 
     const attemptPlayVideo = useCallback(async () => {
         // Debounce play attempts to prevent multiple simultaneous calls
@@ -147,6 +152,25 @@ const AnimatedImage = memo(function AnimatedImage({
     const showVideoLayer = isVideoSupported && !videoError && canVideoActuallyPlay && !hasVideoEnded;
     const isFadingVideo = isVideoSupported && !videoError && isVideoFading;
     const showStaticImage = !isVideoSupported || videoError || hasVideoEnded || !canVideoActuallyPlay;
+    
+    // Use mobile image if provided and viewport is mobile
+    const [isMobile, setIsMobile] = useState(false);
+    
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const checkMobile = () => {
+                setIsMobile(window.innerWidth <= 767);
+            };
+            
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
+            
+            return () => window.removeEventListener('resize', checkMobile);
+        }
+    }, []);
+    
+    const finalImagePath = isMobile && mobileImagePath ? mobileImagePath : imagePath;
+    const finalVideoPath = isMobile && mobileVideoPath ? mobileVideoPath : videoPath;
 
     return (
         <div className="relative w-full h-full overflow-hidden">
@@ -162,7 +186,7 @@ const AnimatedImage = memo(function AnimatedImage({
                 }}
             >
                 <Image
-                    src={imagePath}
+                    src={finalImagePath}
                     alt={alt}
                     className={cn(
                         "w-full h-full",
@@ -256,7 +280,7 @@ const AnimatedImage = memo(function AnimatedImage({
                         setHasVideoPlayedOnce(true);
 
                         // Add this video to the global played videos set
-                        playedVideos.add(videoPath);
+                        playedVideos.add(finalVideoPath);
 
                         setTimeout(() => {
                             setIsVideoFading(false);
@@ -267,22 +291,22 @@ const AnimatedImage = memo(function AnimatedImage({
                         }
                     }}
                     onError={(e) => {
-                        console.error(`Video error: ${videoPath}`, e);
+                        console.error(`Video error: ${finalVideoPath}`, e);
                         setVideoError(true);
                         setCanVideoActuallyPlay(false);
                         setIsVideoFading(false);
                     }}
                     onStalled={() => {
-                        console.warn(`Video stalled: ${videoPath}`);
+                        console.warn(`Video stalled: ${finalVideoPath}`);
                         // Don't immediately fail, browser might recover
                     }}
                     onWaiting={() => {
-                        console.warn(`Video buffering: ${videoPath}`);
+                        console.warn(`Video buffering: ${finalVideoPath}`);
                         // Video is buffering, this is normal
                     }}
-                    src={videoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
+                    src={finalVideoPath.replace('/images/', '/images/optimized/').replace('.mp4', '_optimized.mp4')}
                     crossOrigin="anonymous"
-                    poster={imagePath} // Use the static image as a fallback poster
+                    poster={finalImagePath} // Use the static image as a fallback poster
                 >
                     Your browser does not support the video tag.
                 </motion.video>

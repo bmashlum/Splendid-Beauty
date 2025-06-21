@@ -242,19 +242,18 @@ video.xl-object-contain {
 /* Hero section video/image styling */
 #hero video,
 #hero img {
-  /* Mobile and tablet styling */
+  /* Mobile styling - use cover for mobile-specific image */
   @media (max-width: 767px) {
-    /* Use contain to show the full video/image without cropping */
-    object-fit: contain !important;
+    /* Use cover since we have a perfectly sized mobile image */
+    object-fit: cover !important;
     object-position: center center !important;
     width: 100%;
     height: 100%;
-    background-color: #f9f7e8; /* Add background color to fill any letterboxing */
   }
   
   /* Tablet styling */
   @media (min-width: 768px) and (max-width: 1023px) {
-    object-fit: contain !important;
+    object-fit: cover !important;
     object-position: center center !important;
   }
   
@@ -262,6 +261,33 @@ video.xl-object-contain {
   @media (min-width: 1024px) {
     object-fit: cover !important;
     object-position: center center !important;
+  }
+}
+
+/* Hero section optimized height on mobile */
+@media (max-width: 767px) {
+  #hero {
+    height: 55vh; /* Balanced height for mobile */
+    min-height: 55vh;
+    max-height: 55vh;
+    overflow: hidden; /* Ensure scaled image doesn't overflow */
+  }
+}
+
+/* Adjust event carousel spacing on mobile */
+@media (max-width: 767px) {
+  #events {
+    margin-top: 0; /* No spacing - events start right after hero */
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Slightly reduce padding in event cards for mobile */
+  #events .p-6 {
+    padding: 1rem !important;
+  }
+  
+  #events .lg\:p-10 {
+    padding: 1rem !important;
   }
 }
 

@@ -421,7 +421,9 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
           {sectionConfig ? (
             <AnimatedImage
               imagePath={`/images/${sectionConfig.imageName}${sectionConfig.imageName.endsWith('.webp') ? '' : '.png'}`}
+              mobileImagePath={isHero ? '/images/Home-mobile.webp' : undefined}
               videoPath={`/images/${sectionConfig.videoName}.mp4`}
+              mobileVideoPath={isHero ? '/images/Home-mobile.mp4' : undefined}
               alt={`${id} section background`}
               sizes={imageSizes}
               objectPosition={objectPosition}
@@ -597,7 +599,9 @@ const Section: React.FC<SectionProps> = ({ section, onVideoClick, onSocialClick,
         {sectionConfig ? (
           <AnimatedImage
             imagePath={`/images/${sectionConfig.imageName}${sectionConfig.imageName.endsWith('.webp') ? '' : '.png'}`}
+            mobileImagePath={isHero ? '/images/Home-mobile.webp' : undefined}
             videoPath={`/images/${sectionConfig.videoName}.mp4`}
+            mobileVideoPath={isHero ? '/images/Home-mobile.mp4' : undefined}
             alt={getAltText(id)}
             sizes={imageSizes}
             objectPosition={objectPosition}

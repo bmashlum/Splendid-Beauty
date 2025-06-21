@@ -174,7 +174,7 @@ const Navbar = React.memo(function Navbar({ scrolled: initialScrolled = false }:
                 "transition-all duration-300 ease-in-out",
                 "opacity-100 w-[150px] sm:w-[180px]"
               )}
-              style={{ height: 'auto' }}
+              style={{ height: 'auto', width: 'auto' }}
               sizes="(max-width: 640px) 150px, 180px"
             />
           </Link>
