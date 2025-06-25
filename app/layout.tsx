@@ -211,9 +211,20 @@ export default function RootLayout({ children }: RootLayoutProps) {
             {children}
           </main>
           <footer className="bg-white border-t border-gray-200 py-4 px-6 text-center">
-            <p className="text-xs text-gray-500">
-              &copy; {new Date().getFullYear()} Splendid Beauty Bar & Co. All rights reserved. | Website by Bradford Mashlum
-            </p>
+            <div className="text-xs text-gray-500">
+              <p className="mb-2">
+                &copy; {new Date().getFullYear()} Splendid Beauty Bar & Co. All rights reserved. | Website by Bradford Mashlum
+              </p>
+              <p>
+                <a href="/terms-and-conditions" className="text-gray-600 hover:text-gray-800 underline mx-2">
+                  Terms & Conditions
+                </a>
+                |
+                <a href="/privacy-policy" className="text-gray-600 hover:text-gray-800 underline mx-2">
+                  Privacy Policy
+                </a>
+              </p>
+            </div>
           </footer>
         </ThemeProvider>
         

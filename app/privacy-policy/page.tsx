@@ -1,7 +1,7 @@
 import Image from 'next/image';
-import termsImage from '@/public/images/28.webp';
+import privacyImage from '@/public/images/28.webp';
 
-export default function TermsAndConditions() {
+export default function PrivacyPolicy() {
   return (
     <div 
       className="min-h-screen bg-[url('/images/elegant-gold-background.webp')] bg-cover bg-center" 
@@ -13,12 +13,12 @@ export default function TermsAndConditions() {
       }}
     >
       <div className="px-4 py-16">
-        <h1 className="text-4xl font-bold text-center mb-12">Terms and Conditions</h1>
+        <h1 className="text-4xl font-bold text-center mb-12">Privacy Policy</h1>
         
         <div className="relative w-full h-[1000px] mb-8">
           <Image
-            src={termsImage}
-            alt="Terms and conditions for Splendid Beauty Bar & Co."
+            src={privacyImage}
+            alt="Privacy Policy for Splendid Beauty Bar & Co."
             fill
             className="object-contain"
             priority
@@ -27,10 +27,10 @@ export default function TermsAndConditions() {
         
         <div className="text-center text-gray-600 max-w-4xl mx-auto">
           <p className="mb-4">
-            These terms and conditions govern your use of Splendid Beauty Bar & Co. services.
+            This privacy policy outlines how Splendid Beauty Bar & Co. collects, uses, and protects your personal information.
           </p>
           <p className="text-sm">
-            By using our services, you agree to be bound by these terms.
+            For questions about our privacy practices, please contact us at your convenience.
           </p>
         </div>
       </div>
