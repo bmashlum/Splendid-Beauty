@@ -111,7 +111,7 @@ const nextConfig = {
               connect-src 'self' https://www.google-analytics.com https://maps.googleapis.com https://dashboard.boulevard.io https://blvd.me https://pay.withcherry.com;
               media-src 'self' blob:;
               object-src 'none';
-              frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://dashboard.boulevard.io https://blvd.me https://pay.withcherry.com https://www.google.com;
+              frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://dashboard.boulevard.io https://blvd.me https://pay.withcherry.com https://www.google.com https://www.joinblvd.com;
               base-uri 'self';
               form-action 'self';
               frame-ancestors 'none';
