@@ -69,7 +69,7 @@
     "input-otp": "1.4.1",
     "jose": "^5.10.0",
     "lucide-react": "^0.454.0",
-    "next": "15.2.4",
+    "next": "15.5.21",
     "next-themes": "^0.4.6",
     "react": "^18.2.0",
     "react-day-picker": "8.10.1",
@@ -90,7 +90,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^15.3.3",
+    "@next/bundle-analyzer": "^15.5.21",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22",
     "@types/react": "^19",
@@ -99,7 +99,7 @@
     "@types/uuid": "^9.0.8",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.28.0",
-    "eslint-config-next": "^15.3.3",
+    "eslint-config-next": "^15.5.21",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
