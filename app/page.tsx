@@ -71,12 +71,12 @@ interface GenericIframeModalProps {
 
 const GenericIframeModal = React.memo(({ isOpen, onClose, iframeUrl, title = 'Content' }: GenericIframeModalProps) => {
   return (
-    <Dialog as="div" className="relative z-50" open={isOpen} onClose={onClose}>
+    <Dialog as="div" className="relative z-[200]" open={isOpen} onClose={onClose}>
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="relative w-full max-w-4xl h-[85vh] transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all">
-          <Dialog.Title as="h3" className="px-4 py-2 bg-[#063f48] text-white font-medium">
+      <div className="fixed inset-0 flex items-center justify-center p-0 sm:p-4">
+        <Dialog.Panel className="relative flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col overflow-hidden bg-white text-left align-middle shadow-xl sm:h-[85vh] sm:max-h-[85vh] sm:w-full sm:max-w-4xl sm:rounded-lg">
+          <Dialog.Title as="h3" className="flex min-h-12 shrink-0 items-center bg-[#063f48] px-4 pr-14 font-medium text-white">
             {title}
           </Dialog.Title>
           <button
@@ -88,13 +88,13 @@ const GenericIframeModal = React.memo(({ isOpen, onClose, iframeUrl, title = 'Co
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <div className="h-[calc(100%-40px)]">
+          <div className="min-h-0 w-full flex-1 overscroll-contain">
             <iframe
               src={iframeUrl}
               width="100%"
               height="100%"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              className="border-0"
+              className="block h-full w-full border-0"
               title={title}
             />
           </div>

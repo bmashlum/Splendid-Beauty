@@ -257,16 +257,16 @@ const Navbar = React.memo(function Navbar({ scrolled: initialScrolled = false }:
       </header>
 
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="max-w-[90vw] w-[1200px] h-[90vh] p-0 overflow-hidden">
-          <DialogHeader className="p-4 border-b bg-white">
+        <DialogContent className="!z-[201] flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:h-[90vh] sm:max-h-[calc(100dvh-2rem)] sm:w-[90vw] sm:max-w-[1200px] sm:rounded-lg sm:border md:w-[85vw] lg:w-[80vw] xl:w-[1200px]">
+          <DialogHeader className="shrink-0 border-b bg-white p-4 pr-14">
             <DialogTitle className="text-lg font-semibold text-stone-800">
               Book Your Appointment
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full h-[calc(90vh-4rem)]">
+          <div className="min-h-0 w-full flex-1 overscroll-contain">
             <iframe
               src={BOOKING_URL}
-              className="w-full h-full border-0"
+              className="block h-full w-full border-0"
               title="Booking Widget - Schedule your beauty appointment"
               loading="lazy"
               allow="payment"
