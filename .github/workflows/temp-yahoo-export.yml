@@ -6,9 +6,15 @@ on:
       - temp-yahoo-links-20260819
     paths:
       - .github/workflows/temp-yahoo-export.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/temp-yahoo-export.yml
+      - temp_yahoo_export.py
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   export:
@@ -28,12 +34,3 @@ jobs:
           path: yahoo_exports/
           if-no-files-found: error
           retention-days: 1
-
-      - name: Commit validated exports to temporary branch
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add yahoo_exports
-          git commit -m "Add temporary Yahoo Finance 2Y exports [skip ci]"
-          git push
