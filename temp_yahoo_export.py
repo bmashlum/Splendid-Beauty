@@ -23,43 +23,49 @@ REQUESTS = [
 ]
 
 
-def yahoo_url(host: str, symbol: str) -> str:
+def yahoo_url(host: str, symbol: str, scheme: str = "https") -> str:
     encoded = urllib.parse.quote(symbol, safe="")
     return (
-        f"https://{host}/v8/finance/chart/{encoded}"
+        f"{scheme}://{host}/v8/finance/chart/{encoded}"
         f"?period1={PERIOD1}&period2={PERIOD2}&interval=1d"
         "&includePrePost=false&events=div%2Csplits"
     )
 
 
-def fetch_symbol(symbol: str) -> tuple[dict, str]:
+def fetch_symbol(symbol: str) -> tuple[dict, str, str]:
+    """Fetch Yahoo chart JSON through Jina Reader to avoid shared-IP 429s."""
     errors: list[str] = []
     for host in ("query1.finance.yahoo.com", "query2.finance.yahoo.com"):
-        url = yahoo_url(host, symbol)
-        for attempt in range(1, 5):
+        yahoo_source_url = yahoo_url(host, symbol, scheme="https")
+        relay_url = "https://r.jina.ai/" + yahoo_url(host, symbol, scheme="http")
+        for attempt in range(1, 4):
             request = urllib.request.Request(
-                url,
+                relay_url,
                 headers={
                     "User-Agent": (
                         "Mozilla/5.0 (X11; Linux x86_64) "
                         "AppleWebKit/537.36 Chrome/151 Safari/537.36"
                     ),
-                    "Accept": "application/json,text/plain,*/*",
+                    "Accept": "text/plain,*/*",
                 },
             )
             try:
-                with urllib.request.urlopen(request, timeout=30) as response:
-                    payload = json.load(response)
+                with urllib.request.urlopen(request, timeout=60) as response:
+                    text = response.read().decode("utf-8")
+                json_start = text.find('{"chart":')
+                if json_start < 0:
+                    raise RuntimeError("relay response did not contain Yahoo chart JSON")
+                payload = json.loads(text[json_start:].strip())
                 chart = payload.get("chart", {})
                 if chart.get("error"):
                     raise RuntimeError(str(chart["error"]))
                 results = chart.get("result") or []
                 if not results:
                     raise RuntimeError("Yahoo returned no chart result")
-                return results[0], url
+                return results[0], yahoo_source_url, relay_url
             except Exception as exc:
                 errors.append(
-                    f"{host} attempt {attempt}: {type(exc).__name__}: {exc}"
+                    f"{host} relay attempt {attempt}: {type(exc).__name__}: {exc}"
                 )
                 time.sleep(attempt * 2)
     raise RuntimeError(f"Unable to download {symbol}: " + " | ".join(errors))
@@ -67,12 +73,12 @@ def fetch_symbol(symbol: str) -> tuple[dict, str]:
 
 def fetch_first_available(
     candidates: list[str],
-) -> tuple[str, dict, str, list[str]]:
+) -> tuple[str, dict, str, str, list[str]]:
     failures: list[str] = []
     for candidate in candidates:
         try:
-            result, url = fetch_symbol(candidate)
-            return candidate, result, url, failures
+            result, source_url, relay_url = fetch_symbol(candidate)
+            return candidate, result, source_url, relay_url, failures
         except Exception as exc:
             failures.append(f"{candidate}: {exc}")
     raise RuntimeError("; ".join(failures))
@@ -94,6 +100,7 @@ manifest: dict[str, object] = {
     "requested_period_end_exclusive_utc": "2026-08-19T00:00:00+00:00",
     "interval": "1d",
     "source": "Yahoo Finance chart API",
+    "transport": "Yahoo response relayed verbatim through r.jina.ai",
     "time_format": "UNIX seconds as returned by Yahoo Finance chart API",
     "csv_columns": ["time", "open", "high", "low", "close", "Volume"],
     "instruments": [],
@@ -102,9 +109,13 @@ manifest: dict[str, object] = {
 generated_files: list[Path] = []
 
 for output_symbol, candidates in REQUESTS:
-    source_symbol, result, source_url, prior_failures = fetch_first_available(
-        candidates
-    )
+    (
+        source_symbol,
+        result,
+        source_url,
+        relay_url,
+        prior_failures,
+    ) = fetch_first_available(candidates)
     timestamps = result.get("timestamp") or []
     indicators = result.get("indicators") or {}
     quotes = indicators.get("quote") or []
@@ -197,6 +208,7 @@ for output_symbol, candidates in REQUESTS:
             "requested_symbol": output_symbol,
             "yahoo_source_symbol": source_symbol,
             "source_url": source_url,
+            "relay_url": relay_url,
             "fallback_used": source_symbol != candidates[0],
             "prior_candidate_failures": prior_failures,
             "filename": filename,
