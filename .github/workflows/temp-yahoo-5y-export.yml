@@ -1,0 +1,29 @@
+name: Temporary Yahoo Finance 5Y Export
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    if: github.head_ref == 'temp-yahoo-5y-20260820'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out temporary branch
+        uses: actions/checkout@v4
+
+      - name: Download, normalize, and validate Yahoo Finance daily data
+        run: python temp_yahoo_5y_export.py
+
+      - name: Upload validated five-year CSV package
+        uses: actions/upload-artifact@v4
+        with:
+          name: yahoo-finance-5y-csvs
+          path: yahoo_5y_exports/
+          if-no-files-found: error
+          retention-days: 1
